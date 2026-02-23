@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateTrainer } from "./actions";
+import { updateTrainer, deleteTrainer } from "./actions";
 import type { Trainer } from "@/types/database";
 
 type WageLevel = {
@@ -30,12 +30,14 @@ export default function TrainerEditForm({
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     wage_level_id: trainer.wage_level_id ?? "",
     minimum_hours: trainer.minimum_hours ?? 0,
     contract_from_date: formatDateForInput(trainer.contract_from_date),
     contract_to_date: formatDateForInput(trainer.contract_to_date),
+    contract_fast: trainer.contract_fast ?? false,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -46,13 +48,30 @@ export default function TrainerEditForm({
       wage_level_id: formData.wage_level_id || null,
       minimum_hours: formData.minimum_hours,
       contract_from_date: formData.contract_from_date || null,
-      contract_to_date: formData.contract_to_date || null,
+      contract_to_date: formData.contract_fast ? null : (formData.contract_to_date || null),
+      contract_fast: formData.contract_fast,
     });
     setLoading(false);
     if (result.error) {
       setError(result.error);
       return;
     }
+    router.refresh();
+  }
+
+  async function handleDelete() {
+    if (!confirm("Er du sikker på at du vil slette denne treneren? Denne handlingen kan ikke angres.")) {
+      return;
+    }
+    setDeleting(true);
+    setError(null);
+    const result = await deleteTrainer(trainer.id);
+    setDeleting(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    router.push("/admin");
     router.refresh();
   }
 
@@ -82,7 +101,7 @@ export default function TrainerEditForm({
               <option value="">Velg nivå</option>
               {wageLevels.map((w) => (
                 <option key={w.id} value={w.id}>
-                  {w.name} ({w.hourly_wage} kr/t, min {w.minimum_hours} t)
+                  {w.name} ({w.hourly_wage} kr/t)
                 </option>
               ))}
             </select>
@@ -105,6 +124,23 @@ export default function TrainerEditForm({
               className="w-full rounded-md border border-slate-300 px-3 py-2"
             />
           </div>
+          <div className="sm:col-span-2">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={formData.contract_fast}
+                onChange={(e) =>
+                  setFormData((s) => ({
+                    ...s,
+                    contract_fast: e.target.checked,
+                    contract_to_date: e.target.checked ? "" : s.contract_to_date,
+                  }))
+                }
+                className="rounded border-slate-300"
+              />
+              <span className="text-sm font-medium text-slate-700">Fast kontrakt (ingen sluttdato)</span>
+            </label>
+          </div>
           <div>
             <label htmlFor="contract_from_date" className="mb-1 block text-sm font-medium text-slate-700">
               Kontrakt fra dato
@@ -119,20 +155,22 @@ export default function TrainerEditForm({
               className="w-full rounded-md border border-slate-300 px-3 py-2"
             />
           </div>
-          <div>
-            <label htmlFor="contract_to_date" className="mb-1 block text-sm font-medium text-slate-700">
-              Kontrakt til dato
-            </label>
-            <input
-              id="contract_to_date"
-              type="date"
-              value={formData.contract_to_date}
-              onChange={(e) =>
-                setFormData((s) => ({ ...s, contract_to_date: e.target.value }))
-              }
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
-            />
-          </div>
+          {!formData.contract_fast && (
+            <div>
+              <label htmlFor="contract_to_date" className="mb-1 block text-sm font-medium text-slate-700">
+                Kontrakt til dato
+              </label>
+              <input
+                id="contract_to_date"
+                type="date"
+                value={formData.contract_to_date}
+                onChange={(e) =>
+                  setFormData((s) => ({ ...s, contract_to_date: e.target.value }))
+                }
+                className="w-full rounded-md border border-slate-300 px-3 py-2"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -153,6 +191,14 @@ export default function TrainerEditForm({
         </button>
         <SyncTripletexButton trainerId={trainer.id} />
         <SendContractButton trainerId={trainer.id} />
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={loading || deleting}
+          className="ml-auto rounded-lg border border-red-300 bg-white px-4 py-2 font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+        >
+          {deleting ? "Sletter..." : "Slett trener"}
+        </button>
       </div>
     </form>
   );

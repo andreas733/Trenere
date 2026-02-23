@@ -3,6 +3,37 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  // Min side: trener-login (email/password)
+  if (path.startsWith("/min-side")) {
+    if (path === "/min-side/login") {
+      return NextResponse.next();
+    }
+    let response = NextResponse.next({ request });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set({ name, value, ...options });
+            });
+          },
+        },
+      }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.redirect(new URL("/min-side/login", request.url));
+    }
+    return response;
+  }
+
+  // Admin: Azure / admin_users
   if (!path.startsWith("/admin")) {
     return NextResponse.next();
   }
@@ -56,5 +87,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/((?!login|auth).*)"],
+  matcher: ["/admin", "/admin/((?!login|auth).*)", "/min-side", "/min-side/(?!login).*"],
 };

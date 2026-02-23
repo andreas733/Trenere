@@ -12,6 +12,7 @@ type TrainerRow = {
   minimum_hours: number;
   contract_from_date: string | null;
   contract_to_date: string | null;
+  contract_fast: boolean;
   created_at: string;
   wage_levels: { name: string; hourly_wage: number; minimum_hours: number } | { name: string; hourly_wage: number; minimum_hours: number }[] | null;
 };
@@ -76,7 +77,9 @@ export default function TrainerTable({
                   {Array.isArray(t.wage_levels) ? t.wage_levels[0]?.name : t.wage_levels?.name ?? "–"}
                 </td>
                 <td className="px-4 py-3 text-slate-600">
-                  {t.contract_from_date && t.contract_to_date
+                  {t.contract_fast && t.contract_from_date
+                    ? `Fast fra ${formatDate(t.contract_from_date)}`
+                    : t.contract_from_date && t.contract_to_date
                     ? `${formatDate(t.contract_from_date)} – ${formatDate(t.contract_to_date)}`
                     : "–"}
                 </td>

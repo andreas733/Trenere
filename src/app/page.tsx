@@ -18,6 +18,12 @@ export default function HomePage() {
             Registrer deg som trener
           </Link>
           <Link
+            href="/min-side/login"
+            className="rounded-lg border border-slate-300 px-6 py-3 font-medium text-slate-700 transition hover:bg-slate-100"
+          >
+            Min side – Logg inn
+          </Link>
+          <Link
             href="/admin"
             className="rounded-lg border border-slate-300 px-6 py-3 font-medium text-slate-700 transition hover:bg-slate-100"
           >

@@ -28,6 +28,7 @@ export interface Database {
           minimum_hours: number;
           contract_from_date: string | null;
           contract_to_date: string | null;
+          contract_fast: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -49,6 +50,7 @@ export interface Database {
           minimum_hours?: number;
           contract_from_date?: string | null;
           contract_to_date?: string | null;
+          contract_fasat?: boolean;
           created_at?: string;
           updated_at?: string;
         };

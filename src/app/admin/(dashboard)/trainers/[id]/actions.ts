@@ -10,6 +10,7 @@ export async function updateTrainer(
     minimum_hours: number;
     contract_from_date: string | null;
     contract_to_date: string | null;
+    contract_fast: boolean;
   }
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
@@ -22,9 +23,22 @@ export async function updateTrainer(
       wage_level_id: data.wage_level_id || null,
       minimum_hours: data.minimum_hours,
       contract_from_date: data.contract_from_date || null,
-      contract_to_date: data.contract_to_date || null,
+      contract_to_date: data.contract_fast ? null : (data.contract_to_date || null),
+      contract_fast: data.contract_fast,
     })
     .eq("id", id);
+
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function deleteTrainer(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Ikke innlogget" };
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("trainers").delete().eq("id", id);
 
   if (error) return { error: error.message };
   return {};

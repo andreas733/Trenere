@@ -17,6 +17,7 @@ function AdminLoginForm() {
       provider: "azure",
       options: {
         redirectTo: `${window.location.origin}/admin/auth/callback`,
+        scopes: "email openid profile",
       },
     });
     if (error) {

@@ -27,6 +27,12 @@ export default function AdminNav() {
           >
             Trenere
           </Link>
+          <Link
+            href="/admin/wage-levels"
+            className="text-slate-600 hover:text-slate-900"
+          >
+            Lønnstrinn
+          </Link>
           <button
             onClick={handleSignOut}
             className="rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900"
