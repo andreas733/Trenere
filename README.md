@@ -1,0 +1,98 @@
+# Trenere – Skien Svømmeklubb
+
+Registreringsløsning for nye trenere og frivillige i Skien Svømmeklubb. Integrerer med Tripletex for ansattdata og Anvil Etch for ansettelseskontrakter.
+
+## Funksjoner
+
+- **Trenerregistrering** – Selvregistrering med e-postbekreftelse
+- **Admin-dashboard** – Innlogging via Microsoft Entra ID
+- **Tripletex-sync** – Overføring av trenere som ansatte
+- **Anvil-kontrakter** – Sending av ansettelseskontrakter til e-signering
+
+## Teknisk stack
+
+- Next.js 14 (App Router)
+- Supabase (PostgreSQL, Auth)
+- Tailwind CSS
+
+## Oppsett
+
+### 1. Avhengigheter
+
+```bash
+npm install
+```
+
+### 2. Miljøvariabler
+
+Kopier `.env.example` til `.env.local` og fyll inn. For lokal bygg trenger du minst `NEXT_PUBLIC_SUPABASE_URL` og `NEXT_PUBLIC_SUPABASE_ANON_KEY` (kan bruke placeholdere for kun å kjøre build):
+
+```bash
+cp .env.example .env.local
+```
+
+| Variabel | Beskrivelse |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase-prosjekt URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
+| `TRIPLETEX_CONSUMER_TOKEN` | Tripletex API consumer token |
+| `TRIPLETEX_EMPLOYEE_TOKEN` | Tripletex API employee token |
+| `ANVIL_API_KEY` | Anvil API-nøkkel |
+| `ANVIL_PDF_TEMPLATE_EID` | EID for PDF-malen i Anvil |
+
+### 3. Supabase
+
+1. Opprett et prosjekt på [supabase.com](https://supabase.com)
+2. Kjør migrasjonene i `supabase/migrations/` (via Supabase Dashboard SQL Editor eller CLI)
+3. Aktiver **Email**-provider og sett **Confirm email** til på
+4. Aktiver **Azure**-provider under Auth → Providers for admin-innlogging
+5. Legg til redirect URL: `https://din-app.vercel.app/admin/auth/callback` (og `http://localhost:3000/admin/auth/callback` for lokal utvikling)
+
+### 4. Entra ID (Azure) for admin
+
+1. Registrer en app i [Azure Portal](https://portal.azure.com) → Entra ID → App registrations
+2. Legg til redirect URI: `https://<prosjekt>.supabase.co/auth/v1/callback`
+3. Opprett en client secret
+4. Konfigurer Client ID og Secret i Supabase Dashboard → Auth → Providers → Azure
+
+### 5. Admin-brukere
+
+Brukere som logger inn med Entra ID får automatisk admin-tilgang. For å gi tilgang til andre (f.eks. e-post-brukere), legg dem inn i `admin_users`-tabellen med deres `auth_user_id` fra `auth.users`.
+
+## Kjør lokalt
+
+```bash
+npm run dev
+```
+
+Åpne [http://localhost:3000](http://localhost:3000).
+
+## Deploy til Vercel
+
+1. Push til GitHub
+2. Importer prosjektet i Vercel
+3. Legg inn miljøvariabler
+4. Deploy
+
+## Struktur
+
+```
+src/
+├── app/
+│   ├── registrer/         # Trenerregistrering
+│   ├── admin/             # Admin-dashboard
+│   │   ├── login/         # Entra ID-innlogging
+│   │   └── (dashboard)/    # Trenerliste og redigering
+│   └── api/trainers/      # Tripletex-sync og Anvil-kontrakt
+├── lib/
+│   ├── supabase/          # Supabase-klienter
+│   └── utils/             # Hjelpefunksjoner
+└── types/                 # TypeScript-typer
+```
+
+## Database
+
+- `trainers` – Trenere med kontraktdata
+- `wage_levels` – Lønnstrinn (Nivå 1–4)
+- `admin_users` – Brukere med admin-tilgang
