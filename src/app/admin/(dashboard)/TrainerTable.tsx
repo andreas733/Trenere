@@ -1,11 +1,13 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Link from "next/link";
 
 type TrainerRow = {
   id: string;
   email: string;
   name: string;
+  phone: string | null;
   city: string | null;
   tripletex_id: number | null;
   wage_level_id: string | null;
@@ -27,7 +29,40 @@ export default function TrainerTable({
 }: {
   trainers: TrainerRow[];
 }) {
+  const [search, setSearch] = useState("");
+
+  const filteredTrainers = useMemo(() => {
+    if (!search.trim()) return trainers;
+    const q = search.trim().toLowerCase();
+    return trainers.filter(
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.email.toLowerCase().includes(q) ||
+        (t.city?.toLowerCase().includes(q) ?? false) ||
+        (t.phone?.toLowerCase().includes(q) ?? false)
+    );
+  }, [trainers, search]);
+
   return (
+    <div className="space-y-4">
+      <div>
+        <label htmlFor="trainer-search" className="sr-only">
+          Søk trenere
+        </label>
+        <input
+          id="trainer-search"
+          type="search"
+          placeholder="Søk på navn, e-post, by eller telefon..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        />
+        {search && (
+          <p className="mt-1 text-sm text-slate-500">
+            Viser {filteredTrainers.length} av {trainers.length} trenere
+          </p>
+        )}
+      </div>
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow">
       <table className="min-w-full divide-y divide-slate-200">
         <thead className="bg-slate-50">
@@ -59,14 +94,16 @@ export default function TrainerTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200 bg-white">
-          {trainers.length === 0 ? (
+          {filteredTrainers.length === 0 ? (
             <tr>
               <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
-                Ingen trenere registrert ennå.
+                {trainers.length === 0
+                  ? "Ingen trenere registrert ennå."
+                  : `Ingen trenere matcher "${search}"`}
               </td>
             </tr>
           ) : (
-            trainers.map((t) => (
+            filteredTrainers.map((t) => (
               <tr key={t.id} className="hover:bg-slate-50">
                 <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
                   {t.name}
@@ -106,6 +143,7 @@ export default function TrainerTable({
           )}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }

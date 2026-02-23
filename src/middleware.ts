@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
     );
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.redirect(new URL("/min-side/login", request.url));
+      return NextResponse.redirect(new URL("/", request.url));
     }
     return response;
   }
@@ -87,5 +87,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/((?!login|auth).*)", "/min-side", "/min-side/(?!login).*"],
+  matcher: [
+    "/admin",
+    "/admin/((?!login|auth).*)",
+    "/min-side",
+    "/min-side/:path*",
+  ],
 };

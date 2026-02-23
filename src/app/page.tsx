@@ -1,36 +1,54 @@
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import TrainerLoginForm from "./TrainerLoginForm";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: trainer } = await supabase
+      .from("trainers")
+      .select("id")
+      .eq("auth_user_id", user.id)
+      .single();
+    if (trainer) {
+      redirect("/min-side");
+    }
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <div className="w-full max-w-md space-y-8 text-center">
-        <h1 className="text-3xl font-bold text-slate-800">
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-8">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+        <h1 className="mb-2 text-2xl font-bold text-slate-800">
           Skien Svømmeklubb
         </h1>
-        <p className="text-slate-600">
-          Velkommen til trener- og frivilligregistreringen.
+        <p className="mb-6 text-slate-600">
+          Logg inn for å se din registrerte informasjon.
         </p>
-        <div className="flex flex-col gap-4">
-          <Link
-            href="/registrer"
-            className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700"
-          >
+
+        <TrainerLoginForm />
+
+        <p className="mt-4 text-center text-sm text-slate-500">
+          Har du ikke konto?{" "}
+          <Link href="/registrer" className="text-blue-600 hover:underline">
             Registrer deg som trener
           </Link>
-          <Link
-            href="/min-side/login"
-            className="rounded-lg border border-slate-300 px-6 py-3 font-medium text-slate-700 transition hover:bg-slate-100"
-          >
-            Min side – Logg inn
-          </Link>
-          <Link
-            href="/admin"
-            className="rounded-lg border border-slate-300 px-6 py-3 font-medium text-slate-700 transition hover:bg-slate-100"
-          >
-            Admin – Logg inn
-          </Link>
-        </div>
+        </p>
+        <p className="mt-2 text-center text-xs text-slate-400">
+          Etter registrering må du bekrefte e-posten din før du kan logge inn.
+        </p>
       </div>
+
+      <Link
+        href="/admin"
+        className="fixed bottom-4 right-4 rounded-md bg-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-300"
+      >
+        Admin
+      </Link>
     </main>
   );
 }
