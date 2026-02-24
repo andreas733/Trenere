@@ -44,6 +44,8 @@ cp .env.example .env.local
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
 | `TRIPLETEX_CONSUMER_TOKEN` | Tripletex API consumer token |
 | `TRIPLETEX_EMPLOYEE_TOKEN` | Tripletex API employee token |
+| `TRIPLETEX_USE_TEST` | `true` for test-miljø (api-test.tripletex.tech), `false` for produksjon |
+| `TRIPLETEX_USER_TYPE` | `STANDARD`, `EXTENDED` eller `NO_ACCESS` (valgfritt, standard: STANDARD) |
 | `ANVIL_API_KEY` | Anvil API-nøkkel |
 | `ANVIL_PDF_TEMPLATE_EID` | EID for PDF-malen i Anvil |
 
@@ -68,6 +70,18 @@ cp .env.example .env.local
 ### 5. Admin-brukere
 
 Brukere som logger inn med Entra ID får automatisk admin-tilgang. For å gi tilgang til andre (f.eks. e-post-brukere), legg dem inn i `admin_users`-tabellen med deres `auth_user_id` fra `auth.users`.
+
+### 6. Tripletex (sync til ansatte)
+
+For å synkronisere trenere som ansatte til Tripletex:
+
+1. **Test-miljø:** Registrer deg på [api-test.tripletex.tech](https://api-test.tripletex.tech) – du får consumer token og e-post til aktivering. Opprett employee token i Tripletex under Innstillinger → Brukere → din bruker → API-tilgang → Nytt token.
+2. **Produksjon:** Søk om tilgang via [Tripletex sitt skjema](https://developer.tripletex.no/docs/documentation/getting-started/3-getting-ready-for-production/). Du får consumer token på e-post. Employee token opprettes av kunden i sin Tripletex-konto.
+3. Sett miljøvariabler i Vercel (og `.env.local` lokalt):
+   - `TRIPLETEX_CONSUMER_TOKEN` – fra Tripletex
+   - `TRIPLETEX_EMPLOYEE_TOKEN` – opprettet av bruker i Tripletex
+   - `TRIPLETEX_USE_TEST=true` for test, `false` for produksjon
+4. Klikk «Sync til Tripletex» på trenerens redigeringsside i admin-dashboardet. Treneren opprettes som ansatt i Tripletex (eller oppdateres hvis allerede synkronisert).
 
 ## Kjør lokalt
 

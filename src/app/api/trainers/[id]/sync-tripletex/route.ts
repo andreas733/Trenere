@@ -37,6 +37,21 @@ export async function POST(
     if (!user) {
       return NextResponse.json({ error: "Ikke innlogget" }, { status: 401 });
     }
+    const identities = user.identities ?? [];
+    const isAzure = identities.some((i) => i.provider === "azure");
+    if (!isAzure) {
+      const { data: adminRow } = await supabase
+        .from("admin_users")
+        .select("id")
+        .eq("auth_user_id", user.id)
+        .single();
+      if (!adminRow) {
+        return NextResponse.json(
+          { error: "Kun administratorer kan synkronisere til Tripletex" },
+          { status: 403 }
+        );
+      }
+    }
 
     const { id } = await params;
     const admin = createAdminClient();
