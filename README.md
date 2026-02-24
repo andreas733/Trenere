@@ -102,7 +102,7 @@ For å sende ansettelseskontrakter til e-signering via Anvil:
 
 **Signaturfelt (viktig!):** Hver signerer må være koblet til et signaturfelt i PDF-malen. Felt-idene (`ANVIL_FIELD_SIGNATURE_CLUB`, `ANVIL_FIELD_SIGNATURE_USER`) må matche **Field Alias** i Anvil-malen. Åpne malen i Anvil → Document Templates → velg mal → klikk på hvert signaturfelt og sjekk "Field Alias" (f.eks. `signature`, `signature_club`). For tabellfelt brukes format `feltnavn[0]`, `feltnavn[1]`. Sett miljøvariablene til de eksakte verdiene.
 
-**Signaturstatus:** Appen sporer status via Anvil-webhooks. Sett `ANVIL_WEBHOOK_URL` til f.eks. `https://trenere.skiensvk.no/api/webhooks/anvil` (eller bruk standard som bygges fra `NEXT_PUBLIC_SITE_URL`). Kjør migrasjon `004_contract_status.sql` for å legge til kolonnene.
+**Signaturstatus:** Appen sporer status via Anvil-webhooks. Sett `ANVIL_WEBHOOK_URL` til f.eks. `https://trenere.skiensvk.no/api/webhooks/anvil` (eller bruk standard som bygges fra `NEXT_PUBLIC_SITE_URL`). Kjør migrasjon `004_contract_status.sql` for å legge til kolonnene. Hvis webhooks ikke oppdaterer status automatisk, bruk «Hent status»-knappen på trenerredigeringssiden – den henter status direkte fra Anvil.
 
 **Test av kontraktsignering:**
 - Med `ANVIL_USE_TEST=true` sendes ikke juridiske signaturer – egnet for utvikling
