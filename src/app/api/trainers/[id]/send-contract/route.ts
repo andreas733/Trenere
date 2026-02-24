@@ -125,6 +125,9 @@ export async function POST(
     }
 
     const useTest = process.env.ANVIL_USE_TEST !== "false";
+    const webhookUrl =
+      process.env.ANVIL_WEBHOOK_URL ||
+      `${process.env.NEXT_PUBLIC_SITE_URL || "https://trenere.skiensvk.no"}/api/webhooks/anvil`;
 
     const anvil = new Anvil({ apiKey });
 
@@ -133,6 +136,7 @@ export async function POST(
       signatureEmailSubject: "Vennligst signer kontrakten",
       isDraft: false,
       isTest: useTest,
+      webhookURL: webhookUrl,
       files: [
         {
           id: FILE_ID,
@@ -181,7 +185,22 @@ export async function POST(
       );
     }
 
-    const etchPacket = (data as { data?: { createEtchPacket?: unknown } })?.data?.createEtchPacket;
+    const etchPacket = (data as {
+      data?: { createEtchPacket?: { eid?: string } };
+    })?.data?.createEtchPacket;
+    const packetEid = etchPacket?.eid;
+
+    if (packetEid) {
+      await admin
+        .from("trainers")
+        .update({
+          contract_etch_packet_eid: packetEid,
+          contract_status: "sent",
+          contract_sent_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+    }
+
     return NextResponse.json({ ok: true, etchPacket });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Ukjent feil";

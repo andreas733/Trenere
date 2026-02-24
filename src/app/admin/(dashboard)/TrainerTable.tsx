@@ -15,9 +15,19 @@ type TrainerRow = {
   contract_from_date: string | null;
   contract_to_date: string | null;
   contract_fast: boolean;
+  contract_status: string | null;
   created_at: string;
   wage_levels: { name: string; hourly_wage: number; minimum_hours: number } | { name: string; hourly_wage: number; minimum_hours: number }[] | null;
 };
+
+function ContractStatusLabel({ status }: { status: string | null }) {
+  if (!status) return <span className="text-slate-400">–</span>;
+  if (status === "completed")
+    return <span className="text-green-600">Signert</span>;
+  if (status === "declined" || status === "voided")
+    return <span className="text-red-600">Avslått</span>;
+  return <span className="text-amber-600">Venter</span>;
+}
 
 function formatDate(d: string | null) {
   if (!d) return "–";
@@ -83,6 +93,9 @@ export default function TrainerTable({
               Kontrakt
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+              Signatur
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
               Tripletex
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
@@ -96,7 +109,7 @@ export default function TrainerTable({
         <tbody className="divide-y divide-slate-200 bg-white">
           {filteredTrainers.length === 0 ? (
             <tr>
-              <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
+              <td colSpan={9} className="px-4 py-8 text-center text-slate-500">
                 {trainers.length === 0
                   ? "Ingen trenere registrert ennå."
                   : `Ingen trenere matcher "${search}"`}
@@ -119,6 +132,9 @@ export default function TrainerTable({
                     : t.contract_from_date && t.contract_to_date
                     ? `${formatDate(t.contract_from_date)} – ${formatDate(t.contract_to_date)}`
                     : "–"}
+                </td>
+                <td className="px-4 py-3">
+                  <ContractStatusLabel status={t.contract_status} />
                 </td>
                 <td className="px-4 py-3 text-slate-600">
                   {t.tripletex_id ? (

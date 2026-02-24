@@ -174,6 +174,11 @@ export default function TrainerEditForm({
         </div>
       </div>
 
+      <ContractStatusBadge
+        status={trainer.contract_status}
+        sentAt={trainer.contract_sent_at}
+      />
+
       <div className="flex gap-4">
         <button
           type="submit"
@@ -190,7 +195,7 @@ export default function TrainerEditForm({
           Avbryt
         </button>
         <SyncTripletexButton trainerId={trainer.id} />
-        <SendContractButton trainerId={trainer.id} />
+        <SendContractButton trainerId={trainer.id} onSuccess={() => router.refresh()} />
         <button
           type="button"
           onClick={handleDelete}
@@ -201,6 +206,49 @@ export default function TrainerEditForm({
         </button>
       </div>
     </form>
+  );
+}
+
+function ContractStatusBadge({
+  status,
+  sentAt,
+}: {
+  status: string | null;
+  sentAt: string | null;
+}) {
+  if (!status) return null;
+  const labels: Record<string, string> = {
+    sent: "Kontrakt sendt – venter på signatur fra klubb",
+    club_signed: "Klubb har signert – venter på trener",
+    completed: "Kontrakt fullført",
+    declined: "Signering avslått",
+    voided: "Kontrakt kansellert",
+  };
+  const label = labels[status] ?? status;
+  const isComplete = status === "completed";
+  const isError = status === "declined" || status === "voided";
+  const dateStr = sentAt
+    ? new Date(sentAt).toLocaleDateString("nb-NO", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "";
+  return (
+    <div
+      className={`rounded-lg border p-4 ${
+        isComplete
+          ? "border-green-200 bg-green-50 text-green-800"
+          : isError
+          ? "border-red-200 bg-red-50 text-red-800"
+          : "border-amber-200 bg-amber-50 text-amber-800"
+      }`}
+    >
+      <span className="font-medium">{label}</span>
+      {dateStr && (
+        <span className="ml-2 text-sm opacity-90">(sendt {dateStr})</span>
+      )}
+    </div>
   );
 }
 
@@ -240,7 +288,13 @@ function SyncTripletexButton({ trainerId }: { trainerId: string }) {
   );
 }
 
-function SendContractButton({ trainerId }: { trainerId: string }) {
+function SendContractButton({
+  trainerId,
+  onSuccess,
+}: {
+  trainerId: string;
+  onSuccess?: () => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
@@ -256,6 +310,7 @@ function SendContractButton({ trainerId }: { trainerId: string }) {
       : "Kontrakt sendt! Klubben og treneren mottar signaturlenke på e-post.";
     setMessage({ type: data.error ? "err" : "ok", text: successText });
     setLoading(false);
+    if (!data.error) onSuccess?.();
   }
 
   return (

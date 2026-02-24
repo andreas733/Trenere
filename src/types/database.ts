@@ -29,6 +29,9 @@ export interface Database {
           contract_from_date: string | null;
           contract_to_date: string | null;
           contract_fast: boolean;
+          contract_etch_packet_eid: string | null;
+          contract_status: string | null;
+          contract_sent_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -50,7 +53,10 @@ export interface Database {
           minimum_hours?: number;
           contract_from_date?: string | null;
           contract_to_date?: string | null;
-          contract_fasat?: boolean;
+          contract_fast?: boolean;
+          contract_etch_packet_eid?: string | null;
+          contract_status?: string | null;
+          contract_sent_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

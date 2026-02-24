@@ -21,6 +21,7 @@ export default async function AdminPage() {
       contract_from_date,
       contract_to_date,
       contract_fast,
+      contract_status,
       created_at,
       wage_levels (name, hourly_wage, minimum_hours)
     `
