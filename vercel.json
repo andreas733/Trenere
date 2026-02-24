@@ -1,12 +1,4 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "redirects": [
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "nytrener.skiensvk.no" }],
-      "destination": "https://trenere.skiensvk.no/registrer",
-      "permanent": true
-    }
-  ]
+  "buildCommand": "npm run build"
 }

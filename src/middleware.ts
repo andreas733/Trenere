@@ -14,6 +14,15 @@ function getSupabaseEnv() {
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const host = request.headers.get("host") ?? "";
+
+  // nytrener.skiensvk.no → redirect til registreringssiden
+  if (host === "nytrener.skiensvk.no") {
+    return NextResponse.redirect(
+      new URL("https://trenere.skiensvk.no/registrer"),
+      301
+    );
+  }
 
   // Min side: trener-login (email/password)
   if (path.startsWith("/min-side")) {
@@ -101,6 +110,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
     "/admin",
     "/admin/((?!login|auth).*)",
     "/min-side",
