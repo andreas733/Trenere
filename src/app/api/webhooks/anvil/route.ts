@@ -30,6 +30,10 @@ export async function POST(request: Request) {
     const body = (await request.json()) as WebhookPayload;
     const { action, data: rawData } = body;
 
+    if (!action) {
+      return new NextResponse(null, { status: 204 });
+    }
+
     let data: unknown = rawData;
     if (typeof rawData === "string") {
       try {

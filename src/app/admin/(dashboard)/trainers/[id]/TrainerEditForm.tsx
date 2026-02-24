@@ -177,6 +177,9 @@ export default function TrainerEditForm({
       <ContractStatusBadge
         status={trainer.contract_status}
         sentAt={trainer.contract_sent_at}
+        etchPacketEid={trainer.contract_etch_packet_eid}
+        trainerId={trainer.id}
+        onRefresh={() => router.refresh()}
       />
 
       <div className="flex gap-4">
@@ -212,11 +215,27 @@ export default function TrainerEditForm({
 function ContractStatusBadge({
   status,
   sentAt,
+  etchPacketEid,
+  trainerId,
+  onRefresh,
 }: {
   status: string | null;
   sentAt: string | null;
+  etchPacketEid: string | null;
+  trainerId: string;
+  onRefresh: () => void;
 }) {
-  if (!status) return null;
+  const [syncing, setSyncing] = useState(false);
+
+  async function handleSyncStatus() {
+    setSyncing(true);
+    const res = await fetch(`/api/trainers/${trainerId}/sync-contract-status`, {
+      method: "POST",
+    });
+    setSyncing(false);
+    if (res.ok) onRefresh();
+  }
+
   const labels: Record<string, string> = {
     sent: "Kontrakt sendt – venter på signatur fra klubb",
     club_signed: "Klubb har signert – venter på trener",
@@ -224,7 +243,10 @@ function ContractStatusBadge({
     declined: "Signering avslått",
     voided: "Kontrakt kansellert",
   };
-  const label = labels[status] ?? status;
+  const hasContract = !!etchPacketEid && (status || sentAt);
+  if (!hasContract) return null;
+
+  const label = labels[status ?? ""] ?? status ?? "Sendt";
   const isComplete = status === "completed";
   const isError = status === "declined" || status === "voided";
   const dateStr = sentAt
@@ -244,10 +266,28 @@ function ContractStatusBadge({
           : "border-amber-200 bg-amber-50 text-amber-800"
       }`}
     >
-      <span className="font-medium">{label}</span>
-      {dateStr && (
-        <span className="ml-2 text-sm opacity-90">(sendt {dateStr})</span>
-      )}
+      <div className="flex items-center justify-between gap-4">
+        <span>
+          <span className="font-medium">{label}</span>
+          {dateStr && (
+            <span className="ml-2 text-sm opacity-90">(sendt {dateStr})</span>
+          )}
+        </span>
+        {etchPacketEid &&
+          status &&
+          status !== "completed" &&
+          status !== "declined" &&
+          status !== "voided" && (
+          <button
+            type="button"
+            onClick={handleSyncStatus}
+            disabled={syncing}
+            className="rounded border border-slate-400 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            {syncing ? "Henter..." : "Hent status"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
