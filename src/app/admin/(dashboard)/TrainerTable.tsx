@@ -34,6 +34,19 @@ function formatDate(d: string | null) {
   return new Date(d).toLocaleDateString("nb-NO");
 }
 
+function isContractExpired(
+  contractFast: boolean,
+  contractToDate: string | null
+): boolean {
+  if (contractFast) return false;
+  if (!contractToDate) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const toDate = new Date(contractToDate);
+  toDate.setHours(0, 0, 0, 0);
+  return toDate < today;
+}
+
 export default function TrainerTable({
   trainers,
 }: {
@@ -126,12 +139,20 @@ export default function TrainerTable({
                 <td className="px-4 py-3 text-slate-600">
                   {Array.isArray(t.wage_levels) ? t.wage_levels[0]?.name : t.wage_levels?.name ?? "–"}
                 </td>
-                <td className="px-4 py-3 text-slate-600">
-                  {t.contract_fast && t.contract_from_date
-                    ? `Fast fra ${formatDate(t.contract_from_date)}`
-                    : t.contract_from_date && t.contract_to_date
-                    ? `${formatDate(t.contract_from_date)} – ${formatDate(t.contract_to_date)}`
-                    : "–"}
+                <td className="px-4 py-3">
+                  <span
+                    className={
+                      isContractExpired(t.contract_fast, t.contract_to_date)
+                        ? "font-medium text-red-600"
+                        : "text-slate-600"
+                    }
+                  >
+                    {t.contract_fast && t.contract_from_date
+                      ? `Fast fra ${formatDate(t.contract_from_date)}`
+                      : t.contract_from_date && t.contract_to_date
+                      ? `${formatDate(t.contract_from_date)} – ${formatDate(t.contract_to_date)}`
+                      : "–"}
+                  </span>
                 </td>
                 <td className="px-4 py-3">
                   <ContractStatusLabel status={t.contract_status} />
