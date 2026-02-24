@@ -94,10 +94,13 @@ export async function POST(
         .replace(/\s/g, "")
         .slice(0, 30);
     }
+    // Tripletex krever nøyaktig 11 sifre for nationalIdentityNumber (norsk fødselsnummer)
     if (trainer.national_identity_number) {
-      payload.nationalIdentityNumber = String(trainer.national_identity_number)
-        .replace(/\s/g, "")
-        .slice(0, 20);
+      const digits = String(trainer.national_identity_number).replace(/\D/g, "");
+      if (digits.length === 11) {
+        payload.nationalIdentityNumber = digits;
+      }
+      // Hvis ikke 11 sifre, utelater vi feltet – ansatt kan opprettes uten og fylle inn manuelt i Tripletex
     }
     if (trainer.birthdate) {
       payload.dateOfBirth = trainer.birthdate;
@@ -132,10 +135,19 @@ export async function POST(
         empId = json?.value?.id ?? json?.id;
       } else {
         const text = await putRes.text();
-        return NextResponse.json(
-          { error: `Tripletex PUT feilet: ${putRes.status} ${text.slice(0, 200)}` },
-          { status: 502 }
-        );
+        let errMsg = `Tripletex PUT feilet: ${putRes.status}`;
+        try {
+          const errJson = JSON.parse(text);
+          const validation = errJson?.validationMessages as Array<{ field?: string; message?: string }> | undefined;
+          if (Array.isArray(validation) && validation.length > 0) {
+            errMsg += ` – ${validation.map((v) => `${v.field}: ${v.message}`).join(", ")}`;
+          } else {
+            errMsg += ` – ${text.slice(0, 300)}`;
+          }
+        } catch {
+          errMsg += ` – ${text.slice(0, 300)}`;
+        }
+        return NextResponse.json({ error: errMsg }, { status: 502 });
       }
     }
 
@@ -148,10 +160,20 @@ export async function POST(
 
       if (!postRes.ok) {
         const text = await postRes.text();
-        return NextResponse.json(
-          { error: `Tripletex POST feilet: ${postRes.status} ${text.slice(0, 200)}` },
-          { status: 502 }
-        );
+        let errMsg = `Tripletex POST feilet: ${postRes.status}`;
+        try {
+          const errJson = JSON.parse(text);
+          const validation = errJson?.validationMessages as Array<{ field?: string; message?: string }> | undefined;
+          if (Array.isArray(validation) && validation.length > 0) {
+            const details = validation.map((v) => `${v.field}: ${v.message}`).join(", ");
+            errMsg += ` – ${details}`;
+          } else {
+            errMsg += ` – ${text.slice(0, 300)}`;
+          }
+        } catch {
+          errMsg += ` – ${text.slice(0, 300)}`;
+        }
+        return NextResponse.json({ error: errMsg }, { status: 502 });
       }
       const json = await postRes.json();
       empId = json?.value?.id ?? json?.id;
