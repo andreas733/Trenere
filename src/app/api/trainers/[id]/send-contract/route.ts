@@ -80,8 +80,8 @@ export async function POST(
       );
     }
 
-    const fieldHourly = process.env.ANVIL_FIELD_HOURLY_WAGE || "hourly_wage";
-    const fieldMinimum = process.env.ANVIL_FIELD_MINIMUM_HOURS || "minimum_hours";
+    const fieldHourly = process.env.ANVIL_FIELD_HOURLY_WAGE || "timelonn";
+    const fieldMinimum = process.env.ANVIL_FIELD_MINIMUM_HOURS || "antallTimer";
     const fieldFrom = process.env.ANVIL_FIELD_FROM_DATE || "fradato";
     const fieldTo = process.env.ANVIL_FIELD_TO_DATE || "tildato";
     const fieldName = process.env.ANVIL_FIELD_NAME || "navn";
@@ -171,7 +171,10 @@ export async function POST(
     });
 
     if (statusCode !== 200 || errors?.length) {
-      const msg = errors?.[0]?.message ?? JSON.stringify(data) ?? "Ukjent feil";
+      let msg = errors?.[0]?.message ?? JSON.stringify(data) ?? "Ukjent feil";
+      if (msg.includes("connected to any signature fields")) {
+        msg += " Sjekk at ANVIL_FIELD_SIGNATURE_CLUB og ANVIL_FIELD_SIGNATURE_USER matcher Field Alias i Anvil-malen (PDF Template).";
+      }
       return NextResponse.json(
         { error: `Kunne ikke sende kontrakt til Anvil: ${msg}` },
         { status: 502 }

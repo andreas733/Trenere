@@ -48,6 +48,7 @@ cp .env.example .env.local
 | `TRIPLETEX_USER_TYPE` | `STANDARD`, `EXTENDED` eller `NO_ACCESS` (valgfritt, standard: STANDARD) |
 | `ANVIL_API_KEY` | Anvil API-nøkkel |
 | `ANVIL_PDF_TEMPLATE_EID` | EID for PDF-malen i Anvil |
+| `ANVIL_USE_TEST` | `true` for test (signaturer ikke juridisk bindende), `false` for produksjon |
 
 ### 3. Supabase
 
@@ -88,6 +89,23 @@ For å synkronisere trenere som ansatte til Tripletex:
 - Tripletex krever samsvar mellom fødselsnummer og fødselsdato – appen utleder derfor fødselsdato fra fødselsnummeret (første 6 sifre = DDMMYY) når begge sendes.
 - Støtter både ordinære fødselsnumre og D-numre (første siffer 4–9 i dag-delen).
 - Kun gyldig 11-sifret fødselsnummer sendes; hvis ugyldig utelates feltet og ansatt kan fylles inn manuelt i Tripletex.
+
+### 7. Anvil Etch (kontraktsignering)
+
+For å sende ansettelseskontrakter til e-signering via Anvil:
+
+1. **Opprett konto** på [app.useanvil.com](https://app.useanvil.com)
+2. **Opprett PDF-mal** i Anvil med felt som matcher variablene i koden (standard): `hourly_wage`, `minimum_hours`, `fradato`, `tildato`, `navn`, `pnr`, `adresse`, `signature_club`, `signature_user`. Hent malens EID fra Anvil-dashboardet.
+3. **API-nøkkel** finnes under Organization → API i Anvil.
+4. Sett miljøvariabler: `ANVIL_API_KEY`, `ANVIL_PDF_TEMPLATE_EID`, `ANVIL_USE_TEST=true` (for test)
+5. Klikk «Send kontrakt» på trenerens redigeringsside. Klubben signerer først (e-post til `ANVIL_CLUB_EMAIL`), deretter treneren.
+
+**Signaturfelt (viktig!):** Hver signerer må være koblet til et signaturfelt i PDF-malen. Felt-idene (`ANVIL_FIELD_SIGNATURE_CLUB`, `ANVIL_FIELD_SIGNATURE_USER`) må matche **Field Alias** i Anvil-malen. Åpne malen i Anvil → Document Templates → velg mal → klikk på hvert signaturfelt og sjekk "Field Alias" (f.eks. `signature`, `signature_club`). For tabellfelt brukes format `feltnavn[0]`, `feltnavn[1]`. Sett miljøvariablene til de eksakte verdiene.
+
+**Test av kontraktsignering:**
+- Med `ANVIL_USE_TEST=true` sendes ikke juridiske signaturer – egnet for utvikling
+- Sett `ANVIL_CLUB_EMAIL` til din egen e-post for å motta klubbens signaturlenke direkte
+- Treneren mottar e-post til sin registrerte e-post – bruk en e-post du har tilgang til for testing
 
 ## Kjør lokalt
 

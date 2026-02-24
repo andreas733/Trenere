@@ -251,9 +251,10 @@ function SendContractButton({ trainerId }: { trainerId: string }) {
       method: "POST",
     });
     const data = await res.json();
-    setMessage(
-      data.error ? { type: "err", text: data.error } : { type: "ok", text: "Kontrakt sendt!" }
-    );
+    const successText = data.error
+      ? data.error
+      : "Kontrakt sendt! Klubben og treneren mottar signaturlenke på e-post.";
+    setMessage({ type: data.error ? "err" : "ok", text: successText });
     setLoading(false);
   }
 
