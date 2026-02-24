@@ -1,14 +1,17 @@
 /**
  * Parse DDMMYY from first 6 digits of Norwegian fødselsnummer.
+ * Støtter D-nummer (første siffer 4–9: trekk fra 4 for å få reell dag).
  */
 export function birthdateFromNationalId(nationalId: string | null | undefined): string | null {
   if (!nationalId) return null;
   const digits = String(nationalId).replace(/\D/g, "");
   if (digits.length < 6) return null;
   try {
-    const day = parseInt(digits.slice(0, 2), 10);
+    let day = parseInt(digits.slice(0, 2), 10);
     const month = parseInt(digits.slice(2, 4), 10);
     const yy = parseInt(digits.slice(4, 6), 10);
+    // D-nummer: første siffer 4–9 → trekk fra 40 for å få reell dag (f.eks. 62 → 22)
+    if (day >= 40) day -= 40;
     const year = yy < 40 ? 2000 + yy : 1900 + yy;
     const date = new Date(year, month - 1, day);
     if (isNaN(date.getTime())) return null;

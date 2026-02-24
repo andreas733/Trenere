@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { birthdateFromNationalId } from "@/lib/utils/birthdate";
 import { NextResponse } from "next/server";
 import type { Trainer } from "@/types/database";
 
@@ -94,15 +95,19 @@ export async function POST(
         .replace(/\s/g, "")
         .slice(0, 30);
     }
-    // Tripletex krever nøyaktig 11 sifre for nationalIdentityNumber (norsk fødselsnummer)
+    // Tripletex krever samsvar mellom nationalIdentityNumber og dateOfBirth (første 6 sifre = DDMMYY)
+    // Bruker derfor alltid dato utledet fra fødselsnummer når begge sendes
     if (trainer.national_identity_number) {
       const digits = String(trainer.national_identity_number).replace(/\D/g, "");
       if (digits.length === 11) {
         payload.nationalIdentityNumber = digits;
+        const derivedBirthdate = birthdateFromNationalId(digits);
+        if (derivedBirthdate) {
+          payload.dateOfBirth = derivedBirthdate;
+        }
       }
-      // Hvis ikke 11 sifre, utelater vi feltet – ansatt kan opprettes uten og fylle inn manuelt i Tripletex
     }
-    if (trainer.birthdate) {
+    if (!payload.dateOfBirth && trainer.birthdate) {
       payload.dateOfBirth = trainer.birthdate;
     }
 
