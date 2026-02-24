@@ -83,6 +83,12 @@ For å synkronisere trenere som ansatte til Tripletex:
    - `TRIPLETEX_USE_TEST=true` for test, `false` for produksjon
 4. Klikk «Sync til Tripletex» på trenerens redigeringsside i admin-dashboardet. Treneren opprettes som ansatt i Tripletex (eller oppdateres hvis allerede synkronisert).
 
+**Tekniske detaljer:**
+- Synkroniserer: navn, e-post, adresse, bankkonto, fødselsnummer, fødselsdato.
+- Tripletex krever samsvar mellom fødselsnummer og fødselsdato – appen utleder derfor fødselsdato fra fødselsnummeret (første 6 sifre = DDMMYY) når begge sendes.
+- Støtter både ordinære fødselsnumre og D-numre (første siffer 4–9 i dag-delen).
+- Kun gyldig 11-sifret fødselsnummer sendes; hvis ugyldig utelates feltet og ansatt kan fylles inn manuelt i Tripletex.
+
 ## Kjør lokalt
 
 ```bash
@@ -97,6 +103,10 @@ npm run dev
 2. Importer prosjektet i Vercel
 3. Legg inn miljøvariabler
 4. Deploy
+
+### Ekstra domener
+
+**nytrener.skiensvk.no** – Redirect til registreringssiden (`/registrer`). Konfigureres i `src/middleware.ts`. Legg til domenet i Vercel → Settings → Domains, og sett CNAME for `nytrener` til `cname.vercel-dns.com`.
 
 ## Deploy med Docker (Hetzner m.m.)
 
@@ -131,7 +141,7 @@ src/
 │   └── api/trainers/         # Tripletex-sync og Anvil-kontrakt
 ├── lib/
 │   ├── supabase/             # Supabase-klienter
-│   └── utils/                # Hjelpefunksjoner
+│   └── utils/                # Hjelpefunksjoner (birthdate.ts: parser fødselsdato fra norsk fnr/D-nummer)
 └── types/                    # TypeScript-typer
 ```
 
