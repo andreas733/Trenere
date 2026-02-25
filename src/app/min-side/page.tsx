@@ -24,7 +24,8 @@ export default async function MinSidePage() {
     .select(
       `
       *,
-      wage_levels (name, hourly_wage)
+      wage_levels (name, hourly_wage),
+      trainer_certifications (trainer_levels (id, name, sequence))
     `
     )
     .eq("auth_user_id", user.id)
@@ -54,6 +55,14 @@ export default async function MinSidePage() {
     ? trainer.wage_levels[0]
     : trainer.wage_levels;
 
+  const certifications = (trainer.trainer_certifications ?? []) as {
+    trainer_levels: { id: string; name: string; sequence: number } | null;
+  }[];
+  const trainerLevels = certifications
+    .map((c) => c.trainer_levels)
+    .filter((l): l is { id: string; name: string; sequence: number } => !!l)
+    .sort((a, b) => a.sequence - b.sequence);
+
   return (
     <main className="flex min-h-screen flex-col items-center p-8">
       <div className="w-full max-w-2xl">
@@ -78,6 +87,19 @@ export default async function MinSidePage() {
               city: trainer.city,
             }}
           />
+        </div>
+
+        <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 font-semibold text-slate-800">Trenerutdanning</h2>
+          {trainerLevels.length > 0 ? (
+            <ul className="list-disc space-y-1 pl-5 text-slate-900">
+              {trainerLevels.map((l) => (
+                <li key={l.id}>{l.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-slate-500">Ingen utdanningsnivåer registrert.</p>
+          )}
         </div>
 
         <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">

@@ -3,6 +3,12 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 
+type LevelInfo = { id: string; name: string; sequence: number };
+
+type CertificationWithLevel = {
+  trainer_levels: LevelInfo | LevelInfo[] | null;
+};
+
 type TrainerRow = {
   id: string;
   email: string;
@@ -18,6 +24,7 @@ type TrainerRow = {
   contract_status: string | null;
   created_at: string;
   wage_levels: { name: string; hourly_wage: number; minimum_hours: number } | { name: string; hourly_wage: number; minimum_hours: number }[] | null;
+  trainer_certifications?: CertificationWithLevel[] | null;
 };
 
 function ContractStatusLabel({ status }: { status: string | null }) {
@@ -32,6 +39,22 @@ function ContractStatusLabel({ status }: { status: string | null }) {
 function formatDate(d: string | null) {
   if (!d) return "–";
   return new Date(d).toLocaleDateString("nb-NO");
+}
+
+function toLevel(levels: LevelInfo | LevelInfo[] | null): LevelInfo | null {
+  if (!levels) return null;
+  return Array.isArray(levels) ? levels[0] ?? null : levels;
+}
+
+function getHighestLevel(certs: CertificationWithLevel[] | null | undefined): string {
+  if (!certs?.length) return "–";
+  const levels = certs
+    .map((c) => toLevel(c.trainer_levels))
+    .filter((l): l is LevelInfo => !!l);
+  if (levels.length === 0) return "–";
+  const maxSeq = Math.max(...levels.map((l) => l.sequence));
+  const level = levels.find((l) => l.sequence === maxSeq);
+  return level?.name ?? "–";
 }
 
 function isContractExpired(
@@ -100,6 +123,9 @@ export default function TrainerTable({
               By
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+              Nivå
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
               Lønnstrinn
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
@@ -122,7 +148,7 @@ export default function TrainerTable({
         <tbody className="divide-y divide-slate-200 bg-white">
           {filteredTrainers.length === 0 ? (
             <tr>
-              <td colSpan={9} className="px-4 py-8 text-center text-slate-500">
+              <td colSpan={10} className="px-4 py-8 text-center text-slate-500">
                 {trainers.length === 0
                   ? "Ingen trenere registrert ennå."
                   : `Ingen trenere matcher "${search}"`}
@@ -136,6 +162,9 @@ export default function TrainerTable({
                 </td>
                 <td className="px-4 py-3 text-slate-600">{t.email}</td>
                 <td className="px-4 py-3 text-slate-600">{t.city ?? "–"}</td>
+                <td className="px-4 py-3 text-slate-600">
+                  {getHighestLevel(t.trainer_certifications)}
+                </td>
                 <td className="px-4 py-3 text-slate-600">
                   {Array.isArray(t.wage_levels) ? t.wage_levels[0]?.name : t.wage_levels?.name ?? "–"}
                 </td>

@@ -62,6 +62,34 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["trainers"]["Insert"]>;
       };
+      trainer_levels: {
+        Row: {
+          id: string;
+          name: string;
+          sequence: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          sequence?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["trainer_levels"]["Insert"]>;
+      };
+      trainer_certifications: {
+        Row: {
+          trainer_id: string;
+          level_id: string;
+        };
+        Insert: {
+          trainer_id: string;
+          level_id: string;
+        };
+        Update: never;
+      };
       wage_levels: {
         Row: {
           id: string;
@@ -101,4 +129,6 @@ export interface Database {
 }
 
 export type Trainer = Database["public"]["Tables"]["trainers"]["Row"];
+export type TrainerLevel = Database["public"]["Tables"]["trainer_levels"]["Row"];
+export type TrainerCertification = Database["public"]["Tables"]["trainer_certifications"]["Row"];
 export type WageLevel = Database["public"]["Tables"]["wage_levels"]["Row"];

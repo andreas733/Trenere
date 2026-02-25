@@ -23,7 +23,8 @@ export default async function AdminPage() {
       contract_fast,
       contract_status,
       created_at,
-      wage_levels (name, hourly_wage, minimum_hours)
+      wage_levels (name, hourly_wage, minimum_hours),
+      trainer_certifications (trainer_levels (id, name, sequence))
     `
     )
     .order("created_at", { ascending: false });

@@ -18,7 +18,8 @@ export default async function TrainerEditPage({
     .select(
       `
       *,
-      wage_levels (id, name, hourly_wage, minimum_hours)
+      wage_levels (id, name, hourly_wage, minimum_hours),
+      trainer_certifications (level_id)
     `
     )
     .eq("id", id)
@@ -32,6 +33,14 @@ export default async function TrainerEditPage({
     .from("wage_levels")
     .select("id, name, hourly_wage, minimum_hours")
     .order("sequence");
+
+  const { data: trainerLevels } = await supabase
+    .from("trainer_levels")
+    .select("id, name, sequence")
+    .order("sequence");
+
+  const selectedLevelIds = (trainer.trainer_certifications ?? [])
+    .map((c: { level_id: string }) => c.level_id);
 
   return (
     <div>
@@ -49,6 +58,8 @@ export default async function TrainerEditPage({
       <TrainerEditForm
         trainer={trainer}
         wageLevels={wageLevels ?? []}
+        trainerLevels={trainerLevels ?? []}
+        selectedLevelIds={selectedLevelIds}
       />
     </div>
   );

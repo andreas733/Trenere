@@ -11,6 +11,7 @@ export async function updateTrainer(
     contract_from_date: string | null;
     contract_to_date: string | null;
     contract_fast: boolean;
+    level_ids: string[];
   }
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
@@ -29,6 +30,24 @@ export async function updateTrainer(
     .eq("id", id);
 
   if (error) return { error: error.message };
+
+  const { error: delError } = await supabase
+    .from("trainer_certifications")
+    .delete()
+    .eq("trainer_id", id);
+
+  if (delError) return { error: delError.message };
+
+  if (data.level_ids.length > 0) {
+    const { error: insertError } = await supabase
+      .from("trainer_certifications")
+      .insert(
+        data.level_ids.map((level_id) => ({ trainer_id: id, level_id }))
+      );
+
+    if (insertError) return { error: insertError.message };
+  }
+
   return {};
 }
 

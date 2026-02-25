@@ -12,8 +12,15 @@ type WageLevel = {
   minimum_hours: number;
 };
 
+type TrainerLevel = {
+  id: string;
+  name: string;
+  sequence: number;
+};
+
 type TrainerWithWage = Trainer & {
   wage_levels: WageLevel | null;
+  trainer_certifications?: { level_id: string }[];
 };
 
 function formatDateForInput(d: string | null) {
@@ -24,9 +31,13 @@ function formatDateForInput(d: string | null) {
 export default function TrainerEditForm({
   trainer,
   wageLevels,
+  trainerLevels,
+  selectedLevelIds,
 }: {
   trainer: TrainerWithWage;
   wageLevels: WageLevel[];
+  trainerLevels: TrainerLevel[];
+  selectedLevelIds: string[];
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -38,6 +49,7 @@ export default function TrainerEditForm({
     contract_from_date: formatDateForInput(trainer.contract_from_date),
     contract_to_date: formatDateForInput(trainer.contract_to_date),
     contract_fast: trainer.contract_fast ?? false,
+    level_ids: selectedLevelIds,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -50,6 +62,7 @@ export default function TrainerEditForm({
       contract_from_date: formData.contract_from_date || null,
       contract_to_date: formData.contract_fast ? null : (formData.contract_to_date || null),
       contract_fast: formData.contract_fast,
+      level_ids: formData.level_ids,
     });
     setLoading(false);
     if (result.error) {
@@ -82,6 +95,35 @@ export default function TrainerEditForm({
           {error}
         </div>
       )}
+
+      <div className="rounded-lg border border-slate-200 bg-white p-6">
+        <h2 className="mb-4 font-semibold text-slate-800">Trenerutdanning</h2>
+        <div className="mb-6 space-y-2">
+          {trainerLevels.map((level) => (
+            <label key={level.id} className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={formData.level_ids.includes(level.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFormData((s) => ({
+                      ...s,
+                      level_ids: [...s.level_ids, level.id],
+                    }));
+                  } else {
+                    setFormData((s) => ({
+                      ...s,
+                      level_ids: s.level_ids.filter((id) => id !== level.id),
+                    }));
+                  }
+                }}
+                className="rounded border-slate-300"
+              />
+              <span className="text-sm text-slate-700">{level.name}</span>
+            </label>
+          ))}
+        </div>
+      </div>
 
       <div className="rounded-lg border border-slate-200 bg-white p-6">
         <h2 className="mb-4 font-semibold text-slate-800">Kontraktsinformasjon</h2>
