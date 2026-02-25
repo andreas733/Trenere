@@ -6,7 +6,7 @@ import Link from "next/link";
 type LevelInfo = { id: string; name: string; sequence: number };
 
 type CertificationWithLevel = {
-  trainer_levels: LevelInfo | LevelInfo[] | null;
+  trainer_levels: LevelInfo | null;
 };
 
 type TrainerRow = {
@@ -41,15 +41,10 @@ function formatDate(d: string | null) {
   return new Date(d).toLocaleDateString("nb-NO");
 }
 
-function toLevel(levels: LevelInfo | LevelInfo[] | null): LevelInfo | null {
-  if (!levels) return null;
-  return Array.isArray(levels) ? levels[0] ?? null : levels;
-}
-
 function getHighestLevel(certs: CertificationWithLevel[] | null | undefined): string {
   if (!certs?.length) return "–";
   const levels = certs
-    .map((c) => toLevel(c.trainer_levels))
+    .map((c) => c.trainer_levels)
     .filter((l): l is LevelInfo => !!l);
   if (levels.length === 0) return "–";
   const maxSeq = Math.max(...levels.map((l) => l.sequence));
