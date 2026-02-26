@@ -15,6 +15,18 @@ export default function MinSideLayout({
           </Link>
           <div className="flex items-center gap-4">
             <Link
+              href="/min-side/treningsokter"
+              className="text-slate-600 hover:text-slate-900"
+            >
+              Treningsøkter
+            </Link>
+            <Link
+              href="/min-side/planlegging"
+              className="text-slate-600 hover:text-slate-900"
+            >
+              Planlegging
+            </Link>
+            <Link
               href="/min-side/profil"
               className="text-slate-600 hover:text-slate-900"
             >

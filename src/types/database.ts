@@ -124,6 +124,44 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["admin_users"]["Insert"]>;
       };
+      training_sessions: {
+        Row: {
+          id: string;
+          title: string;
+          content: string;
+          total_meters: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          content?: string;
+          total_meters?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["training_sessions"]["Insert"]>;
+      };
+      planned_sessions: {
+        Row: {
+          id: string;
+          session_id: string;
+          planned_date: string;
+          planned_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          planned_date: string;
+          planned_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["planned_sessions"]["Insert"]>;
+      };
     };
   };
 }
@@ -132,3 +170,5 @@ export type Trainer = Database["public"]["Tables"]["trainers"]["Row"];
 export type TrainerLevel = Database["public"]["Tables"]["trainer_levels"]["Row"];
 export type TrainerCertification = Database["public"]["Tables"]["trainer_certifications"]["Row"];
 export type WageLevel = Database["public"]["Tables"]["wage_levels"]["Row"];
+export type TrainingSession = Database["public"]["Tables"]["training_sessions"]["Row"];
+export type PlannedSession = Database["public"]["Tables"]["planned_sessions"]["Row"];
