@@ -95,7 +95,7 @@ export async function POST(req: Request) {
     const userPrompt = `Lag en ${intensity} ${stroke}-økt på ca ${totalMeters} meter. Bruk norsk svømmenotasjon som beskrevet. Svar KUN med JSON.`;
 
     const message = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-6",
       max_tokens: 2048,
       system: SWIMMING_SYSTEM_PROMPT,
       messages: [{ role: "user", content: userPrompt }],
