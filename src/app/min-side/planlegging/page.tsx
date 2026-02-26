@@ -17,7 +17,7 @@ export default async function PlanleggingPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("planned_sessions")
-      .select("id, session_id, planned_date, ai_title, ai_content, ai_total_meters, training_sessions ( title )")
+      .select("id, session_id, planned_date, ai_title, ai_content, ai_total_meters, training_sessions ( title, content, total_meters )")
       .order("planned_date"),
   ]);
 
@@ -25,18 +25,26 @@ export default async function PlanleggingPage() {
   const planned = plannedResult.data ?? [];
 
   const plannedWithTitle = planned.map((p) => {
-    const ts = p.training_sessions as unknown;
-    const fromBank = ts && typeof ts === "object" && "title" in ts
-      ? String((ts as { title: unknown }).title)
+    const ts = p.training_sessions as { title?: unknown; content?: unknown; total_meters?: unknown } | null;
+    const fromBankTitle = ts && typeof ts === "object" && "title" in ts
+      ? String(ts.title)
       : "";
-    const title = p.session_id ? fromBank : (p.ai_title ?? "");
+    const fromBankContent = ts && typeof ts === "object" && "content" in ts
+      ? String(ts.content ?? "")
+      : null;
+    const fromBankMeters = ts && typeof ts === "object" && "total_meters" in ts
+      ? String(ts.total_meters ?? "")
+      : null;
+    const title = p.session_id ? fromBankTitle : (p.ai_title ?? "");
+    const content = p.session_id ? fromBankContent : (p.ai_content ?? null);
+    const totalMeters = p.session_id ? fromBankMeters : (p.ai_total_meters ?? null);
     return {
       id: p.id,
       session_id: p.session_id,
       planned_date: p.planned_date,
       title: title || "",
-      ai_content: p.ai_content ?? null,
-      ai_total_meters: p.ai_total_meters ?? null,
+      content: content || null,
+      totalMeters: totalMeters || null,
     };
   });
 

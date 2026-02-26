@@ -19,8 +19,8 @@ type Planned = {
   session_id: string | null;
   planned_date: string;
   title: string;
-  ai_content?: string | null;
-  ai_total_meters?: string | null;
+  content: string | null;
+  totalMeters: string | null;
 };
 
 const WEEKDAY_NAMES = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
@@ -48,7 +48,7 @@ function formatDateKey(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-type ModalMode = "choice" | "bank" | "ai_form" | "ai_preview";
+type ModalMode = "choice" | "bank" | "ai_form" | "ai_preview" | "view";
 
 type GeneratedWorkout = {
   title: string;
@@ -153,6 +153,8 @@ export default function PlanleggingClient({
         session_id: sessionId,
         planned_date: date,
         title: session?.title ?? "",
+        content: null,
+        totalMeters: session?.total_meters ?? null,
       },
     ]);
     closeModal();
@@ -191,6 +193,8 @@ export default function PlanleggingClient({
         session_id: null,
         planned_date: date,
         title: generatedWorkout.title,
+        content: generatedWorkout.content,
+        totalMeters: generatedWorkout.totalMeters,
       },
     ]);
     closeModal();
@@ -318,32 +322,19 @@ export default function PlanleggingClient({
                 {cell.date && (
                   <div className="mt-1">
                     {p ? (
-                      <div className="rounded bg-slate-100 p-1.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDate(cell.date);
+                          setModalMode("view");
+                        }}
+                        className="w-full rounded bg-slate-100 p-1.5 text-left text-xs hover:bg-slate-200"
+                      >
                         <p className="truncate font-medium text-slate-800">
                           {p.title}
                         </p>
-                        {isSelected ? (
-                          <button
-                            type="button"
-                            onClick={() => handleUnplan(p.id, cell.date)}
-                            disabled={loading}
-                            className="mt-1 text-red-600 hover:text-red-800 disabled:opacity-50"
-                          >
-                            Fjern
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedDate(cell.date);
-                              setModalMode("choice");
-                            }}
-                            className="mt-1 text-blue-600 hover:text-blue-800"
-                          >
-                            Endre
-                          </button>
-                        )}
-                      </div>
+                        <span className="text-slate-500">Klikk for å se</span>
+                      </button>
                     ) : (
                       <button
                         type="button"
@@ -368,10 +359,64 @@ export default function PlanleggingClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
             <h3 className="mb-4 font-semibold text-slate-800">
-              {modalMode === "choice"
-                ? `Legg til økt for ${dateLabel}`
-                : `Velg økt for ${dateLabel}`}
+              {modalMode === "view"
+                ? `Planlagt økt – ${dateLabel}`
+                : modalMode === "choice"
+                  ? `Legg til økt for ${dateLabel}`
+                  : `Velg økt for ${dateLabel}`}
             </h3>
+
+            {modalMode === "view" && selectedDate && (() => {
+              const p = plannedByDate[selectedDate];
+              if (!p) return null;
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-medium text-slate-800">{p.title}</p>
+                    {p.totalMeters && (
+                      <p className="text-sm text-slate-600">
+                        Totale meter: {p.totalMeters}
+                      </p>
+                    )}
+                  </div>
+                  {p.content ? (
+                    <pre className="max-h-60 overflow-y-auto whitespace-pre-wrap rounded bg-slate-50 p-3 text-xs text-slate-800">
+                      {p.content}
+                    </pre>
+                  ) : (
+                    <p className="text-sm text-slate-500 italic">
+                      Ingen innhold lagret for denne økten.
+                    </p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      Lukk
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModalMode("choice");
+                      }}
+                      className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      Endre
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUnplan(p.id, selectedDate)}
+                      disabled={loading}
+                      className="flex-1 rounded-lg bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                    >
+                      Fjern
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {modalMode === "choice" && (
               <div className="space-y-3">
