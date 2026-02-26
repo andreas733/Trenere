@@ -27,15 +27,6 @@ function getHighestLevel(certs: NormalizedCert[] | null | undefined): string {
   return names.length > 0 ? names[names.length - 1] : "–";
 }
 
-function getHighestLevelId(certs: NormalizedCert[] | null | undefined): string | null {
-  if (!certs?.length) return null;
-  const levels = certs
-    .map((c) => c.trainer_levels)
-    .filter((l): l is LevelInfo => !!l)
-    .sort((a, b) => a.sequence - b.sequence);
-  return levels.length > 0 ? levels[levels.length - 1].id : null;
-}
-
 export default function KompetanseTable({
   trainers,
   trainerLevels,
@@ -50,10 +41,12 @@ export default function KompetanseTable({
     let result = trainers;
 
     if (selectedLevelIds.length > 0) {
-      result = result.filter((t) => {
-        const highestId = getHighestLevelId(t.trainer_certifications);
-        return highestId !== null && selectedLevelIds.includes(highestId);
-      });
+      result = result.filter((t) =>
+        (t.trainer_certifications ?? []).some(
+          (c) =>
+            c.trainer_levels && selectedLevelIds.includes(c.trainer_levels.id)
+        )
+      );
     }
 
     if (search.trim()) {
@@ -85,9 +78,7 @@ export default function KompetanseTable({
   return (
     <div className="space-y-4">
       <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4">
-        <h2 className="font-medium text-slate-800">
-          Filtrer på høyeste nivå
-        </h2>
+        <h2 className="font-medium text-slate-800">Filtrer på kompetanse</h2>
         <div className="flex flex-wrap items-center gap-4">
           <label className="flex cursor-pointer items-center gap-2">
             <input
