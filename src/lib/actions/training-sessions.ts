@@ -140,3 +140,35 @@ export async function unplanSession(id: string): Promise<{ error?: string }> {
   revalidatePath("/admin/treningsokter");
   return {};
 }
+
+export async function planSessionWithAIContent(data: {
+  plannedDate: string;
+  title: string;
+  content: string;
+  totalMeters?: string | null;
+}): Promise<{ error?: string }> {
+  const auth = await ensureTrainerOrAdmin();
+  if ("error" in auth) return { error: auth.error };
+
+  const admin = createAdminClient();
+  const trainerId = "trainerId" in auth ? auth.trainerId : null;
+
+  const { error } = await admin.from("planned_sessions").insert({
+    session_id: null,
+    planned_date: data.plannedDate,
+    planned_by: trainerId,
+    ai_title: data.title.trim().slice(0, 500),
+    ai_content: data.content,
+    ai_total_meters: data.totalMeters?.trim().slice(0, 100) || null,
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      return { error: "Denne datoen har allerede en planlagt økt" };
+    }
+    return { error: error.message };
+  }
+  revalidatePath("/min-side/planlegging");
+  revalidatePath("/admin/treningsokter");
+  return {};
+}

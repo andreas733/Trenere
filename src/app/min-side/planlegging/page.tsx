@@ -17,7 +17,7 @@ export default async function PlanleggingPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("planned_sessions")
-      .select("id, session_id, planned_date, training_sessions ( title )")
+      .select("id, session_id, planned_date, ai_title, ai_content, ai_total_meters, training_sessions ( title )")
       .order("planned_date"),
   ]);
 
@@ -26,14 +26,17 @@ export default async function PlanleggingPage() {
 
   const plannedWithTitle = planned.map((p) => {
     const ts = p.training_sessions as unknown;
-    const title = ts && typeof ts === "object" && "title" in ts
+    const fromBank = ts && typeof ts === "object" && "title" in ts
       ? String((ts as { title: unknown }).title)
       : "";
+    const title = p.session_id ? fromBank : (p.ai_title ?? "");
     return {
       id: p.id,
       session_id: p.session_id,
       planned_date: p.planned_date,
       title: title || "",
+      ai_content: p.ai_content ?? null,
+      ai_total_meters: p.ai_total_meters ?? null,
     };
   });
 

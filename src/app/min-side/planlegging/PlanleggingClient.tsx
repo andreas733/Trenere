@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { planSession, unplanSession } from "@/lib/actions/training-sessions";
+import {
+  planSession,
+  unplanSession,
+  planSessionWithAIContent,
+} from "@/lib/actions/training-sessions";
 
 type Session = {
   id: string;
@@ -12,9 +16,11 @@ type Session = {
 
 type Planned = {
   id: string;
-  session_id: string;
+  session_id: string | null;
   planned_date: string;
   title: string;
+  ai_content?: string | null;
+  ai_total_meters?: string | null;
 };
 
 const WEEKDAY_NAMES = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
@@ -23,9 +29,32 @@ const MONTH_NAMES = [
   "Juli", "August", "September", "Oktober", "November", "Desember",
 ];
 
+const STROKES = [
+  { value: "crawl", label: "Crawl" },
+  { value: "rygg", label: "Rygg" },
+  { value: "bryst", label: "Bryst" },
+  { value: "butterfly", label: "Butterfly" },
+  { value: "medley", label: "Medley" },
+];
+
+const INTENSITIES = [
+  { value: "lett", label: "Lett" },
+  { value: "moderat", label: "Moderat" },
+  { value: "høy", label: "Høy" },
+  { value: "topp", label: "Topp" },
+];
+
 function formatDateKey(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
+
+type ModalMode = "choice" | "bank" | "ai_form" | "ai_preview";
+
+type GeneratedWorkout = {
+  title: string;
+  content: string;
+  totalMeters: string;
+};
 
 export default function PlanleggingClient({
   sessions,
@@ -44,8 +73,17 @@ export default function PlanleggingClient({
   });
   const [planned, setPlanned] = useState<Planned[]>(initialPlanned);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [modalMode, setModalMode] = useState<ModalMode>("choice");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [aiForm, setAiForm] = useState({
+    stroke: "crawl",
+    totalMeters: "4000",
+    intensity: "moderat",
+  });
+  const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     setPlanned(initialPlanned);
@@ -54,6 +92,7 @@ export default function PlanleggingClient({
   useEffect(() => {
     if (velgSessionId && sessions.some((s) => s.id === velgSessionId)) {
       setSelectedDate(formatDateKey(new Date()));
+      setModalMode("bank");
       router.replace("/min-side/planlegging", { scroll: false });
     }
   }, [velgSessionId, sessions, router]);
@@ -80,6 +119,13 @@ export default function PlanleggingClient({
 
   const todayKey = formatDateKey(new Date());
 
+  function closeModal() {
+    setSelectedDate(null);
+    setModalMode("choice");
+    setGeneratedWorkout(null);
+    setError(null);
+  }
+
   async function handlePlan(sessionId: string, date: string) {
     setError(null);
     setLoading(true);
@@ -102,10 +148,85 @@ export default function PlanleggingClient({
     const session = sessions.find((s) => s.id === sessionId);
     setPlanned((prev) => [
       ...prev.filter((p) => p.planned_date !== date),
-      { id: crypto.randomUUID(), session_id: sessionId, planned_date: date, title: session?.title ?? "" },
+      {
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        planned_date: date,
+        title: session?.title ?? "",
+      },
     ]);
-    setSelectedDate(null);
+    closeModal();
     router.refresh();
+  }
+
+  async function handlePlanAI(date: string) {
+    if (!generatedWorkout) return;
+    setError(null);
+    setLoading(true);
+    const existing = plannedByDate[date];
+    if (existing) {
+      const unplanResult = await unplanSession(existing.id);
+      if (unplanResult.error) {
+        setError(unplanResult.error);
+        setLoading(false);
+        return;
+      }
+      setPlanned((prev) => prev.filter((p) => p.id !== existing.id));
+    }
+    const result = await planSessionWithAIContent({
+      plannedDate: date,
+      title: generatedWorkout.title,
+      content: generatedWorkout.content,
+      totalMeters: generatedWorkout.totalMeters,
+    });
+    setLoading(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setPlanned((prev) => [
+      ...prev.filter((p) => p.planned_date !== date),
+      {
+        id: crypto.randomUUID(),
+        session_id: null,
+        planned_date: date,
+        title: generatedWorkout.title,
+      },
+    ]);
+    closeModal();
+    router.refresh();
+  }
+
+  async function handleGenerateWorkout() {
+    if (!selectedDate) return;
+    setError(null);
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/generate-workout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stroke: aiForm.stroke,
+          totalMeters: aiForm.totalMeters,
+          intensity: aiForm.intensity,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Kunne ikke generere økt");
+        setGenerating(false);
+        return;
+      }
+      setGeneratedWorkout({
+        title: data.title,
+        content: data.content,
+        totalMeters: data.totalMeters,
+      });
+      setModalMode("ai_preview");
+    } catch {
+      setError("Kunne ikke kontakte AI-tjenesten");
+    }
+    setGenerating(false);
   }
 
   async function handleUnplan(id: string, date: string) {
@@ -122,6 +243,14 @@ export default function PlanleggingClient({
     router.refresh();
   }
 
+  const dateLabel = selectedDate
+    ? new Date(selectedDate + "T12:00:00").toLocaleDateString("nb-NO", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+    : "";
+
   return (
     <div className="space-y-4">
       {error && (
@@ -133,9 +262,7 @@ export default function PlanleggingClient({
       <div className="flex items-center justify-between">
         <button
           type="button"
-          onClick={() =>
-            setViewDate(new Date(year, month - 1, 1))
-          }
+          onClick={() => setViewDate(new Date(year, month - 1, 1))}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
           Forrige
@@ -145,9 +272,7 @@ export default function PlanleggingClient({
         </h2>
         <button
           type="button"
-          onClick={() =>
-            setViewDate(new Date(year, month + 1, 1))
-          }
+          onClick={() => setViewDate(new Date(year, month + 1, 1))}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
           Neste
@@ -209,7 +334,10 @@ export default function PlanleggingClient({
                         ) : (
                           <button
                             type="button"
-                            onClick={() => setSelectedDate(cell.date)}
+                            onClick={() => {
+                              setSelectedDate(cell.date);
+                              setModalMode("choice");
+                            }}
                             className="mt-1 text-blue-600 hover:text-blue-800"
                           >
                             Endre
@@ -219,7 +347,10 @@ export default function PlanleggingClient({
                     ) : (
                       <button
                         type="button"
-                        onClick={() => setSelectedDate(cell.date)}
+                        onClick={() => {
+                          setSelectedDate(cell.date);
+                          setModalMode("choice");
+                        }}
                         className="w-full rounded border border-dashed border-slate-300 py-1.5 text-xs text-slate-500 hover:border-slate-400 hover:text-slate-700"
                       >
                         Legg til økt
@@ -235,46 +366,185 @@ export default function PlanleggingClient({
 
       {selectedDate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[80vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
+          <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
             <h3 className="mb-4 font-semibold text-slate-800">
-              Velg økt for{" "}
-              {new Date(selectedDate + "T12:00:00").toLocaleDateString("nb-NO", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}
+              {modalMode === "choice"
+                ? `Legg til økt for ${dateLabel}`
+                : `Velg økt for ${dateLabel}`}
             </h3>
-            <div className="mb-4 max-h-60 space-y-2 overflow-y-auto">
-              {sessions.length === 0 ? (
-                <p className="text-sm text-slate-500">
-                  Ingen økter i banken. Legg til økter først.
-                </p>
-              ) : (
-                sessions.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => handlePlan(s.id, selectedDate)}
-                    disabled={loading}
-                    className="block w-full rounded-lg border border-slate-200 bg-white p-3 text-left text-sm hover:bg-slate-50 disabled:opacity-50"
+
+            {modalMode === "choice" && (
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setModalMode("bank")}
+                  className="block w-full rounded-lg border border-slate-200 bg-white p-4 text-left font-medium text-slate-800 hover:bg-slate-50"
+                >
+                  Velg fra bank
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalMode("ai_form")}
+                  className="block w-full rounded-lg border border-slate-200 bg-white p-4 text-left font-medium text-slate-800 hover:bg-slate-50"
+                >
+                  Generer ny økt med AI
+                </button>
+              </div>
+            )}
+
+            {modalMode === "bank" && (
+              <div className="mb-4 max-h-60 space-y-2 overflow-y-auto">
+                {sessions.length === 0 ? (
+                  <p className="text-sm text-slate-500">
+                    Ingen økter i banken. Legg til økter eller bruk AI.
+                  </p>
+                ) : (
+                  sessions.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => handlePlan(s.id, selectedDate)}
+                      disabled={loading}
+                      className="block w-full rounded-lg border border-slate-200 bg-white p-3 text-left text-sm hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      <span className="font-medium text-slate-800">{s.title}</span>
+                      {s.total_meters && (
+                        <span className="ml-2 text-slate-600">
+                          ({s.total_meters} m)
+                        </span>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+
+            {modalMode === "ai_form" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Svømmeart
+                  </label>
+                  <select
+                    value={aiForm.stroke}
+                    onChange={(e) =>
+                      setAiForm((s) => ({ ...s, stroke: e.target.value }))
+                    }
+                    className="w-full rounded-md border border-slate-300 px-3 py-2"
                   >
-                    <span className="font-medium text-slate-800">{s.title}</span>
-                    {s.total_meters && (
-                      <span className="ml-2 text-slate-600">
-                        ({s.total_meters} m)
-                      </span>
-                    )}
+                    {STROKES.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Antall meter (ca.)
+                  </label>
+                  <input
+                    type="number"
+                    min={500}
+                    step={250}
+                    value={aiForm.totalMeters}
+                    onChange={(e) =>
+                      setAiForm((s) => ({ ...s, totalMeters: e.target.value }))
+                    }
+                    className="w-full rounded-md border border-slate-300 px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Intensitet
+                  </label>
+                  <select
+                    value={aiForm.intensity}
+                    onChange={(e) =>
+                      setAiForm((s) => ({ ...s, intensity: e.target.value }))
+                    }
+                    className="w-full rounded-md border border-slate-300 px-3 py-2"
+                  >
+                    {INTENSITIES.map((i) => (
+                      <option key={i.value} value={i.value}>
+                        {i.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateWorkout}
+                  disabled={generating}
+                  className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {generating ? "Genererer..." : "Generer økt"}
+                </button>
+              </div>
+            )}
+
+            {modalMode === "ai_preview" && generatedWorkout && (
+              <div className="space-y-4">
+                <div>
+                  <p className="font-medium text-slate-800">
+                    {generatedWorkout.title}
+                  </p>
+                  {generatedWorkout.totalMeters && (
+                    <p className="text-sm text-slate-600">
+                      Totale meter: {generatedWorkout.totalMeters}
+                    </p>
+                  )}
+                </div>
+                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded bg-slate-50 p-3 text-xs text-slate-800">
+                  {generatedWorkout.content}
+                </pre>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setModalMode("ai_form")}
+                    className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    Prøv igjen
                   </button>
-                ))
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setSelectedDate(null)}
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
-            >
-              Lukk
-            </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePlanAI(selectedDate!)}
+                    disabled={loading}
+                    className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {loading ? "Planlegger..." : "Planlegg"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {(modalMode === "choice" || modalMode === "bank") && (
+              <button
+                type="button"
+                onClick={closeModal}
+                className="mt-4 w-full rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Lukk
+              </button>
+            )}
+            {modalMode === "bank" && (
+              <button
+                type="button"
+                onClick={() => setModalMode("choice")}
+                className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+              >
+                Tilbake
+              </button>
+            )}
+            {modalMode === "ai_form" && (
+              <button
+                type="button"
+                onClick={() => setModalMode("choice")}
+                className="mt-4 w-full rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Tilbake
+              </button>
+            )}
           </div>
         </div>
       )}

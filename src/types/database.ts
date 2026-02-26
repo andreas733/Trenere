@@ -148,17 +148,23 @@ export interface Database {
       planned_sessions: {
         Row: {
           id: string;
-          session_id: string;
+          session_id: string | null;
           planned_date: string;
           planned_by: string | null;
           created_at: string;
+          ai_title: string | null;
+          ai_content: string | null;
+          ai_total_meters: string | null;
         };
         Insert: {
           id?: string;
-          session_id: string;
+          session_id?: string | null;
           planned_date: string;
           planned_by?: string | null;
           created_at?: string;
+          ai_title?: string | null;
+          ai_content?: string | null;
+          ai_total_meters?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["planned_sessions"]["Insert"]>;
       };
