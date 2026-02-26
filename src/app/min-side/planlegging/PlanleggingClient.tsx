@@ -48,6 +48,20 @@ function formatDateKey(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+function parseMeters(s: string | null): number {
+  if (!s) return 0;
+  const nums = s.match(/\d+/g)?.map(Number) ?? [];
+  return nums.reduce((a, b) => a + b, 0);
+}
+
+function getMonday(d: Date): Date {
+  const copy = new Date(d);
+  const day = copy.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  copy.setDate(copy.getDate() + diff);
+  return copy;
+}
+
 type ModalMode = "choice" | "bank" | "ai_form" | "ai_preview" | "view";
 
 type GeneratedWorkout = {
@@ -67,9 +81,10 @@ export default function PlanleggingClient({
   const searchParams = useSearchParams();
   const velgSessionId = searchParams.get("velg");
 
+  const [viewMode, setViewMode] = useState<"week" | "month" | "day">("week");
   const [viewDate, setViewDate] = useState(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return getMonday(now);
   });
   const [planned, setPlanned] = useState<Planned[]>(initialPlanned);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -98,6 +113,30 @@ export default function PlanleggingClient({
   }, [velgSessionId, sessions, router]);
 
   const plannedByDate = Object.fromEntries(planned.map((p) => [p.planned_date, p]));
+
+  const visibleDateKeys: string[] = (() => {
+    if (viewMode === "week") {
+      const mon = getMonday(viewDate);
+      return Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(mon);
+        d.setDate(mon.getDate() + i);
+        return formatDateKey(d);
+      });
+    }
+    if (viewMode === "day") {
+      return [formatDateKey(viewDate)];
+    }
+    const y = viewDate.getFullYear();
+    const m = viewDate.getMonth();
+    const last = new Date(y, m + 1, 0).getDate();
+    return Array.from({ length: last }, (_, i) =>
+      formatDateKey(new Date(y, m, i + 1))
+    );
+  })();
+
+  const totalMetersSum = planned
+    .filter((p) => visibleDateKeys.includes(p.planned_date))
+    .reduce((sum, p) => sum + parseMeters(p.totalMeters), 0);
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -263,96 +302,251 @@ export default function PlanleggingClient({
         </div>
       )}
 
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex gap-2">
+          {(["week", "month", "day"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setViewMode(m)}
+              className={`rounded-lg border px-3 py-2 text-sm font-medium ${
+                viewMode === m
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {m === "week" ? "Uke" : m === "month" ? "Måned" : "Dag"}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-slate-600">
+            Totalt: {totalMetersSum.toLocaleString("nb-NO")} m
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (viewMode === "week") {
+                  const d = new Date(viewDate);
+                  d.setDate(d.getDate() - 7);
+                  setViewDate(d);
+                } else if (viewMode === "month") {
+                  setViewDate(new Date(year, month - 1, 1));
+                } else {
+                  const d = new Date(viewDate);
+                  d.setDate(d.getDate() - 1);
+                  setViewDate(d);
+                }
+              }}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Forrige
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (viewMode === "week") {
+                  const d = new Date(viewDate);
+                  d.setDate(d.getDate() + 7);
+                  setViewDate(d);
+                } else if (viewMode === "month") {
+                  setViewDate(new Date(year, month + 1, 1));
+                } else {
+                  const d = new Date(viewDate);
+                  d.setDate(d.getDate() + 1);
+                  setViewDate(d);
+                }
+              }}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Neste
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => setViewDate(new Date(year, month - 1, 1))}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
-          Forrige
-        </button>
         <h2 className="text-lg font-semibold text-slate-800">
-          {MONTH_NAMES[month]} {year}
+          {viewMode === "day"
+            ? viewDate.toLocaleDateString("nb-NO", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })
+            : viewMode === "week"
+              ? visibleDateKeys[0]
+                ? (() => {
+                    const mon = new Date(
+                      visibleDateKeys[0] + "T12:00:00"
+                    );
+                    const sun = new Date(visibleDateKeys[6] + "T12:00:00");
+                    const sameMonth =
+                      mon.getMonth() === sun.getMonth() &&
+                      mon.getFullYear() === sun.getFullYear();
+                    return sameMonth
+                      ? `${mon.getDate()}.–${sun.getDate()}. ${MONTH_NAMES[mon.getMonth()]} ${mon.getFullYear()}`
+                      : `${mon.getDate()}. ${MONTH_NAMES[mon.getMonth()].slice(0, 3)} – ${sun.getDate()}. ${MONTH_NAMES[sun.getMonth()].slice(0, 3)} ${sun.getFullYear()}`;
+                  })()
+                : ""
+              : `${MONTH_NAMES[month]} ${year}`}
         </h2>
-        <button
-          type="button"
-          onClick={() => setViewDate(new Date(year, month + 1, 1))}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
-          Neste
-        </button>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
-          {WEEKDAY_NAMES.map((name) => (
+        {viewMode === "day" ? (
+          <div className="p-4">
             <div
-              key={name}
-              className="px-2 py-2 text-center text-xs font-medium text-slate-600"
+              className={`min-h-[120px] rounded-lg border p-4 ${
+                todayKey === formatDateKey(viewDate)
+                  ? "border-blue-300 bg-blue-50/50"
+                  : "border-slate-200"
+              }`}
             >
-              {name}
+              <div className="mb-3 flex items-center justify-between">
+                <span
+                  className={`text-sm font-medium ${
+                    todayKey === formatDateKey(viewDate)
+                      ? "text-blue-700"
+                      : "text-slate-700"
+                  }`}
+                >
+                  {viewDate.toLocaleDateString("nb-NO", {
+                    weekday: "long",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+              {(() => {
+                const p = plannedByDate[formatDateKey(viewDate)];
+                return p ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDate(formatDateKey(viewDate));
+                      setModalMode("view");
+                    }}
+                    className="w-full rounded-lg bg-slate-100 p-4 text-left hover:bg-slate-200"
+                  >
+                    <p className="font-medium text-slate-800">{p.title}</p>
+                    {p.totalMeters && (
+                      <p className="mt-1 text-sm text-slate-600">
+                        {p.totalMeters} m
+                      </p>
+                    )}
+                    <span className="mt-2 block text-sm text-slate-500">
+                      Klikk for å se innhold
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDate(formatDateKey(viewDate));
+                      setModalMode("choice");
+                    }}
+                    className="w-full rounded-lg border-2 border-dashed border-slate-300 py-8 text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                  >
+                    Legg til økt
+                  </button>
+                );
+              })()}
             </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7">
-          {days.map((cell, i) => {
-            if (!cell.isCurrentMonth) {
-              return <div key={i} className="min-h-[80px] bg-slate-50/50" />;
-            }
-            const p = plannedByDate[cell.date];
-            const isToday = cell.date === todayKey;
-            const isSelected = selectedDate === cell.date;
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
+              {WEEKDAY_NAMES.map((name) => (
+                <div
+                  key={name}
+                  className="px-2 py-2 text-center text-xs font-medium text-slate-600"
+                >
+                  {name}
+                </div>
+              ))}
+            </div>
+            <div
+              className={`grid grid-cols-7 ${
+                viewMode === "week" ? "grid-rows-1" : ""
+              }`}
+            >
+              {(viewMode === "week" ? visibleDateKeys : days).map((cell, i) => {
+                const date =
+                  viewMode === "week"
+                    ? (cell as string)
+                    : (cell as { date: string; isCurrentMonth: boolean }).date;
+                const isCurrentMonth =
+                  viewMode === "week" ||
+                  (cell as { date: string; isCurrentMonth: boolean })
+                    .isCurrentMonth;
+                if (viewMode === "month" && !isCurrentMonth) {
+                  return (
+                    <div
+                      key={i}
+                      className="min-h-[80px] bg-slate-50/50"
+                    />
+                  );
+                }
+                const p = date ? plannedByDate[date] : null;
+                const isToday = date === todayKey;
 
-            return (
-              <div
-                key={cell.date || i}
-                className={`min-h-[80px] border-b border-r border-slate-200 p-2 last:border-r-0 ${
-                  isToday ? "bg-blue-50/50" : ""
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`text-sm font-medium ${
-                      isToday ? "text-blue-700" : "text-slate-700"
+                return (
+                  <div
+                    key={date || i}
+                    className={`min-h-[80px] border-b border-r border-slate-200 p-2 last:border-r-0 ${
+                      isToday ? "bg-blue-50/50" : ""
                     }`}
                   >
-                    {cell.date ? new Date(cell.date + "T12:00:00").getDate() : ""}
-                  </span>
-                </div>
-                {cell.date && (
-                  <div className="mt-1">
-                    {p ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedDate(cell.date);
-                          setModalMode("view");
-                        }}
-                        className="w-full rounded bg-slate-100 p-1.5 text-left text-xs hover:bg-slate-200"
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`text-sm font-medium ${
+                          isToday ? "text-blue-700" : "text-slate-700"
+                        }`}
                       >
-                        <p className="truncate font-medium text-slate-800">
-                          {p.title}
-                        </p>
-                        <span className="text-slate-500">Klikk for å se</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedDate(cell.date);
-                          setModalMode("choice");
-                        }}
-                        className="w-full rounded border border-dashed border-slate-300 py-1.5 text-xs text-slate-500 hover:border-slate-400 hover:text-slate-700"
-                      >
-                        Legg til økt
-                      </button>
+                        {date
+                          ? new Date(date + "T12:00:00").getDate()
+                          : ""}
+                      </span>
+                    </div>
+                    {date && (
+                      <div className="mt-1">
+                        {p ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedDate(date);
+                              setModalMode("view");
+                            }}
+                            className="w-full rounded bg-slate-100 p-1.5 text-left text-xs hover:bg-slate-200"
+                          >
+                            <p className="truncate font-medium text-slate-800">
+                              {p.title}
+                            </p>
+                            <span className="text-slate-500">
+                              Klikk for å se
+                            </span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedDate(date);
+                              setModalMode("choice");
+                            }}
+                            className="w-full rounded border border-dashed border-slate-300 py-1.5 text-xs text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                          >
+                            Legg til økt
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {selectedDate && (
