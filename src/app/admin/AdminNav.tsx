@@ -28,6 +28,12 @@ export default function AdminNav() {
             Trenere
           </Link>
           <Link
+            href="/admin/kompetanse"
+            className="text-slate-600 hover:text-slate-900"
+          >
+            Kompetanseoversikt
+          </Link>
+          <Link
             href="/admin/wage-levels"
             className="text-slate-600 hover:text-slate-900"
           >
