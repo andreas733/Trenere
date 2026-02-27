@@ -151,6 +151,8 @@ export async function planSessionWithAIContent(data: {
   title: string;
   content: string;
   totalMeters?: string | null;
+  focusStroke?: string | null;
+  intensity?: string | null;
   partyId: string;
 }): Promise<{ error?: string }> {
   const auth = await ensureTrainerOrAdmin();
@@ -167,6 +169,8 @@ export async function planSessionWithAIContent(data: {
     ai_title: data.title.trim().slice(0, 500),
     ai_content: data.content,
     ai_total_meters: data.totalMeters?.trim().slice(0, 100) || null,
+    ai_focus_stroke: data.focusStroke?.trim() || null,
+    ai_intensity: data.intensity?.trim() || null,
   });
 
   if (error) return { error: error.message };

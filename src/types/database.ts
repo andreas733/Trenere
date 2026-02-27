@@ -192,6 +192,8 @@ export interface Database {
           ai_title: string | null;
           ai_content: string | null;
           ai_total_meters: string | null;
+          ai_focus_stroke: string | null;
+          ai_intensity: string | null;
         };
         Insert: {
           id?: string;
@@ -203,6 +205,8 @@ export interface Database {
           ai_title?: string | null;
           ai_content?: string | null;
           ai_total_meters?: string | null;
+          ai_focus_stroke?: string | null;
+          ai_intensity?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["planned_sessions"]["Insert"]>;
       };

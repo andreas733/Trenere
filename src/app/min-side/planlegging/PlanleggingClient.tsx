@@ -7,6 +7,7 @@ import {
   unplanSession,
   planSessionWithAIContent,
 } from "@/lib/actions/training-sessions";
+import { parseMeters } from "@/lib/utils/parse-meters";
 
 type Session = {
   id: string;
@@ -46,12 +47,6 @@ const INTENSITIES = [
 
 function formatDateKey(d: Date): string {
   return d.toISOString().slice(0, 10);
-}
-
-function parseMeters(s: string | null): number {
-  if (!s) return 0;
-  const nums = s.match(/\d+/g)?.map(Number) ?? [];
-  return nums.reduce((a, b) => a + b, 0);
 }
 
 function getMonday(d: Date): Date {
@@ -246,6 +241,8 @@ export default function PlanleggingClient({
       title: generatedWorkout.title,
       content: generatedWorkout.content,
       totalMeters: generatedWorkout.totalMeters,
+      focusStroke: aiForm.stroke,
+      intensity: aiForm.intensity,
       partyId,
     });
     setLoading(false);
