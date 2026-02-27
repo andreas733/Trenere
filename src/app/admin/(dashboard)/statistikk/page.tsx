@@ -1,11 +1,12 @@
 import StatistikkClient from "./StatistikkClient";
+import { formatLocalDate } from "@/lib/utils/date-local";
 
 export const dynamic = "force-dynamic";
 
 function getDefaultPeriod() {
   const now = new Date();
-  const to = now.toISOString().slice(0, 10);
-  const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  const to = formatLocalDate(now);
+  const from = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
   return { from, to };
 }
 

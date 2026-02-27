@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { parseMeters } from "@/lib/utils/parse-meters";
+import { getMondayOfWeek } from "@/lib/utils/date-local";
 
 export type StatistikkData = {
   totalMeters: number;
@@ -102,10 +103,7 @@ export async function getStatistikk(
       intensityCounts[intensity] = (intensityCounts[intensity] ?? 0) + 1;
     }
 
-    const d = new Date(r.planned_date);
-    const mon = new Date(d);
-    mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-    const weekKey = mon.toISOString().slice(0, 10);
+    const weekKey = getMondayOfWeek(r.planned_date);
     if (!weekMap[weekKey]) weekMap[weekKey] = { meters: 0, count: 0 };
     weekMap[weekKey].meters += meters;
     weekMap[weekKey].count += 1;

@@ -15,11 +15,12 @@ import {
   Legend,
 } from "recharts";
 import { getStatistikk, type StatistikkData } from "@/lib/actions/statistikk";
+import { parseLocalDate } from "@/lib/utils/date-local";
 
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 function formatWeekLabel(week: string): string {
-  const d = new Date(week);
+  const d = parseLocalDate(week);
   return `${d.getDate()}. ${["Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Des"][d.getMonth()]}`;
 }
 
