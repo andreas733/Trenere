@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   planSession,
@@ -88,6 +88,7 @@ export default function PlanleggingClient({
   });
   const [planned, setPlanned] = useState<Planned[]>(initialPlanned);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedPlannedId, setSelectedPlannedId] = useState<string | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>("choice");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +113,14 @@ export default function PlanleggingClient({
     }
   }, [velgSessionId, sessions, router]);
 
-  const plannedByDate = Object.fromEntries(planned.map((p) => [p.planned_date, p]));
+  const plannedByDate = useMemo(() => {
+    const map: Record<string, Planned[]> = {};
+    for (const p of planned) {
+      if (!map[p.planned_date]) map[p.planned_date] = [];
+      map[p.planned_date].push(p);
+    }
+    return map;
+  }, [planned]);
 
   const visibleDateKeys: string[] = (() => {
     if (viewMode === "week") {
@@ -160,6 +168,7 @@ export default function PlanleggingClient({
 
   function closeModal() {
     setSelectedDate(null);
+    setSelectedPlannedId(null);
     setModalMode("choice");
     setGeneratedWorkout(null);
     setError(null);
@@ -168,16 +177,6 @@ export default function PlanleggingClient({
   async function handlePlan(sessionId: string, date: string) {
     setError(null);
     setLoading(true);
-    const existing = plannedByDate[date];
-    if (existing) {
-      const unplanResult = await unplanSession(existing.id);
-      if (unplanResult.error) {
-        setError(unplanResult.error);
-        setLoading(false);
-        return;
-      }
-      setPlanned((prev) => prev.filter((p) => p.id !== existing.id));
-    }
     const result = await planSession(sessionId, date);
     setLoading(false);
     if (result.error) {
@@ -186,7 +185,7 @@ export default function PlanleggingClient({
     }
     const session = sessions.find((s) => s.id === sessionId);
     setPlanned((prev) => [
-      ...prev.filter((p) => p.planned_date !== date),
+      ...prev,
       {
         id: crypto.randomUUID(),
         session_id: sessionId,
@@ -204,16 +203,6 @@ export default function PlanleggingClient({
     if (!generatedWorkout) return;
     setError(null);
     setLoading(true);
-    const existing = plannedByDate[date];
-    if (existing) {
-      const unplanResult = await unplanSession(existing.id);
-      if (unplanResult.error) {
-        setError(unplanResult.error);
-        setLoading(false);
-        return;
-      }
-      setPlanned((prev) => prev.filter((p) => p.id !== existing.id));
-    }
     const result = await planSessionWithAIContent({
       plannedDate: date,
       title: generatedWorkout.title,
@@ -226,7 +215,7 @@ export default function PlanleggingClient({
       return;
     }
     setPlanned((prev) => [
-      ...prev.filter((p) => p.planned_date !== date),
+      ...prev,
       {
         id: crypto.randomUUID(),
         session_id: null,
@@ -283,6 +272,7 @@ export default function PlanleggingClient({
     }
     setPlanned((prev) => prev.filter((p) => p.id !== id));
     setSelectedDate(null);
+    setSelectedPlannedId(null);
     router.refresh();
   }
 
@@ -419,37 +409,44 @@ export default function PlanleggingClient({
                 </span>
               </div>
               {(() => {
-                const p = plannedByDate[formatDateKey(viewDate)];
-                return p ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedDate(formatDateKey(viewDate));
-                      setModalMode("view");
-                    }}
-                    className="w-full rounded-lg bg-slate-100 p-4 text-left hover:bg-slate-200"
-                  >
-                    <p className="font-medium text-slate-800">{p.title}</p>
-                    {p.totalMeters && (
-                      <p className="mt-1 text-sm text-slate-600">
-                        {p.totalMeters} m
-                      </p>
-                    )}
-                    <span className="mt-2 block text-sm text-slate-500">
-                      Klikk for å se innhold
-                    </span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedDate(formatDateKey(viewDate));
-                      setModalMode("choice");
-                    }}
-                    className="w-full rounded-lg border-2 border-dashed border-slate-300 py-8 text-slate-500 hover:border-slate-400 hover:text-slate-700"
-                  >
-                    Legg til økt
-                  </button>
+                const dateKey = formatDateKey(viewDate);
+                const sessionsForDay = plannedByDate[dateKey] ?? [];
+                return (
+                  <div className="space-y-2">
+                    {sessionsForDay.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedDate(dateKey);
+                          setSelectedPlannedId(p.id);
+                          setModalMode("view");
+                        }}
+                        className="w-full rounded-lg bg-slate-100 p-4 text-left hover:bg-slate-200"
+                      >
+                        <p className="font-medium text-slate-800">{p.title}</p>
+                        {p.totalMeters && (
+                          <p className="mt-1 text-sm text-slate-600">
+                            {p.totalMeters} m
+                          </p>
+                        )}
+                        <span className="mt-2 block text-sm text-slate-500">
+                          Klikk for å se innhold
+                        </span>
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDate(dateKey);
+                        setSelectedPlannedId(null);
+                        setModalMode("choice");
+                      }}
+                      className="w-full rounded-lg border-2 border-dashed border-slate-300 py-4 text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                    >
+                      Legg til økt
+                    </button>
+                  </div>
                 );
               })()}
             </div>
@@ -488,7 +485,6 @@ export default function PlanleggingClient({
                     />
                   );
                 }
-                const p = date ? plannedByDate[date] : null;
                 const isToday = date === todayKey;
 
                 return (
@@ -510,35 +506,34 @@ export default function PlanleggingClient({
                       </span>
                     </div>
                     {date && (
-                      <div className="mt-1">
-                        {p ? (
+                      <div className="mt-1 space-y-1">
+                        {(plannedByDate[date] ?? []).map((p) => (
                           <button
+                            key={p.id}
                             type="button"
                             onClick={() => {
                               setSelectedDate(date);
+                              setSelectedPlannedId(p.id);
                               setModalMode("view");
                             }}
-                            className="w-full rounded bg-slate-100 p-1.5 text-left text-xs hover:bg-slate-200"
+                            className="block w-full rounded bg-slate-100 p-1.5 text-left text-xs hover:bg-slate-200"
                           >
                             <p className="truncate font-medium text-slate-800">
                               {p.title}
                             </p>
-                            <span className="text-slate-500">
-                              Klikk for å se
-                            </span>
                           </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedDate(date);
-                              setModalMode("choice");
-                            }}
-                            className="w-full rounded border border-dashed border-slate-300 py-1.5 text-xs text-slate-500 hover:border-slate-400 hover:text-slate-700"
-                          >
-                            Legg til økt
-                          </button>
-                        )}
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedDate(date);
+                            setSelectedPlannedId(null);
+                            setModalMode("choice");
+                          }}
+                          className="block w-full rounded border border-dashed border-slate-300 py-1 text-xs text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                        >
+                          Legg til økt
+                        </button>
                       </div>
                     )}
                   </div>
@@ -560,8 +555,8 @@ export default function PlanleggingClient({
                   : `Velg økt for ${dateLabel}`}
             </h3>
 
-            {modalMode === "view" && selectedDate && (() => {
-              const p = plannedByDate[selectedDate];
+            {modalMode === "view" && selectedPlannedId && (() => {
+              const p = planned.find((x) => x.id === selectedPlannedId);
               if (!p) return null;
               return (
                 <div className="space-y-4">

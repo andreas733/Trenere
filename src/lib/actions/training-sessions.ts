@@ -125,12 +125,7 @@ export async function planSession(
     planned_by: trainerId,
   });
 
-  if (error) {
-    if (error.code === "23505") {
-      return { error: "Denne datoen har allerede en planlagt økt" };
-    }
-    return { error: error.message };
-  }
+  if (error) return { error: error.message };
   revalidatePath("/min-side/planlegging");
   revalidatePath("/admin/treningsokter");
   return {};
@@ -170,12 +165,7 @@ export async function planSessionWithAIContent(data: {
     ai_total_meters: data.totalMeters?.trim().slice(0, 100) || null,
   });
 
-  if (error) {
-    if (error.code === "23505") {
-      return { error: "Denne datoen har allerede en planlagt økt" };
-    }
-    return { error: error.message };
-  }
+  if (error) return { error: error.message };
   revalidatePath("/min-side/planlegging");
   revalidatePath("/admin/treningsokter");
   return {};
