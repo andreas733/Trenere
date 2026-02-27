@@ -19,7 +19,7 @@ import {
   Line,
 } from "recharts";
 import { getStatistikk, type StatistikkData } from "@/lib/actions/statistikk";
-import { parseLocalDate } from "@/lib/utils/date-local";
+import { parseLocalDate, formatLocalDate } from "@/lib/utils/date-local";
 import {
   getTrinnForParty,
   getWeeklyReferenceLineData,
@@ -273,6 +273,14 @@ export default function StatistikkClient({
     return selectedPartyIds.length === 0 || selectedPartyIds.includes(partyId);
   }
 
+  function setPeriod(days: number) {
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - days);
+    setTo(formatLocalDate(toDate));
+    setFrom(formatLocalDate(fromDate));
+  }
+
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -363,6 +371,39 @@ export default function StatistikkClient({
             onChange={(e) => setTo(e.target.value)}
             className="min-h-[44px] rounded-md border border-slate-300 px-3 py-2"
           />
+        </div>
+        <div>
+          <p className="mb-1 text-sm font-medium text-slate-700">Periode</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setPeriod(30)}
+              className="min-h-[44px] rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Siste 30 dager
+            </button>
+            <button
+              type="button"
+              onClick={() => setPeriod(90)}
+              className="min-h-[44px] rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Siste 3 måneder
+            </button>
+            <button
+              type="button"
+              onClick={() => setPeriod(180)}
+              className="min-h-[44px] rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Siste 6 måneder
+            </button>
+            <button
+              type="button"
+              onClick={() => setPeriod(365)}
+              className="min-h-[44px] rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Siste 12 måneder
+            </button>
+          </div>
         </div>
       </div>
 
