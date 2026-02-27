@@ -116,6 +116,7 @@ export default function PlanleggingClient({
     stroke: "crawl",
     totalMeters: "4000",
     intensity: "moderat",
+    focusArea: "",
   });
   const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -298,6 +299,7 @@ export default function PlanleggingClient({
           stroke: aiForm.stroke,
           totalMeters: aiForm.totalMeters,
           intensity: aiForm.intensity,
+          focusArea: aiForm.focusArea.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -801,6 +803,23 @@ export default function PlanleggingClient({
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Fokusområde (valgfritt)
+                  </label>
+                  <input
+                    type="text"
+                    value={aiForm.focusArea}
+                    onChange={(e) =>
+                      setAiForm((s) => ({ ...s, focusArea: e.target.value }))
+                    }
+                    placeholder="F.eks. undervannsarbeid, ryggstart, vendinger"
+                    className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Tittelen på økten vil ta inn over seg dette når det er satt.
+                  </p>
                 </div>
                 <button
                   type="button"

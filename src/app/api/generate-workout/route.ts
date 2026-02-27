@@ -73,7 +73,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { stroke, totalMeters, intensity } = body;
+    const { stroke, totalMeters, intensity, focusArea } = body;
 
     if (!stroke || !totalMeters || !intensity) {
       return NextResponse.json(
@@ -92,7 +92,10 @@ export async function POST(req: Request) {
 
     const anthropic = new Anthropic({ apiKey });
 
-    const userPrompt = `Lag en ${intensity} ${stroke}-økt på ca ${totalMeters} meter. Bruk norsk svømmenotasjon som beskrevet. Svar KUN med JSON.`;
+    const focusPart = focusArea && String(focusArea).trim()
+      ? ` Fokuser spesielt på: ${String(focusArea).trim()}. Tittelen på økten MÅ reflektere dette fokusområdet.`
+      : "";
+    const userPrompt = `Lag en ${intensity} ${stroke}-økt på ca ${totalMeters} meter.${focusPart} Bruk norsk svømmenotasjon som beskrevet. Svar KUN med JSON.`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
