@@ -96,6 +96,11 @@ export default function PlanleggingClient({
   const [modalMode, setModalMode] = useState<ModalMode>("choice");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendEmailResult, setSendEmailResult] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const [aiForm, setAiForm] = useState({
     stroke: "crawl",
@@ -176,6 +181,35 @@ export default function PlanleggingClient({
     setModalMode("choice");
     setGeneratedWorkout(null);
     setError(null);
+    setSendEmailResult(null);
+  }
+
+  async function handleSendEmail(plannedId: string) {
+    setSendEmailResult(null);
+    setSendingEmail(true);
+    try {
+      const res = await fetch(`/api/planned-sessions/${plannedId}/send-email`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSendEmailResult({
+          type: "success",
+          message: data.message ?? "E-post sendt til trenere",
+        });
+      } else {
+        setSendEmailResult({
+          type: "error",
+          message: data.error ?? "Kunne ikke sende e-post",
+        });
+      }
+    } catch {
+      setSendEmailResult({
+        type: "error",
+        message: "Kunne ikke kontakte serveren",
+      });
+    }
+    setSendingEmail(false);
   }
 
   async function handlePlan(sessionId: string, date: string) {
@@ -582,7 +616,18 @@ export default function PlanleggingClient({
                       Ingen innhold lagret for denne økten.
                     </p>
                   )}
-                  <div className="flex gap-2">
+                  {sendEmailResult && (
+                    <div
+                      className={`rounded-lg p-3 text-sm ${
+                        sendEmailResult.type === "success"
+                          ? "bg-green-50 text-green-800"
+                          : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {sendEmailResult.message}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={closeModal}
@@ -606,6 +651,14 @@ export default function PlanleggingClient({
                       className="flex-1 rounded-lg bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700 disabled:opacity-50"
                     >
                       Fjern
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendEmail(p.id)}
+                      disabled={sendingEmail}
+                      className="flex-1 rounded-lg border border-blue-600 bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {sendingEmail ? "Sender..." : "Send til trenere"}
                     </button>
                   </div>
                 </div>
