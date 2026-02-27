@@ -13,6 +13,8 @@ import {
   Pie,
   Cell,
   Legend,
+  AreaChart,
+  Area,
 } from "recharts";
 import { getStatistikk, type StatistikkData } from "@/lib/actions/statistikk";
 import { parseLocalDate } from "@/lib/utils/date-local";
@@ -106,8 +108,50 @@ export default function StatistikkClient({
           </div>
 
           {data.metersByWeek.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow">
-              <h2 className="mb-4 text-lg font-semibold text-slate-800">Meter per uke</h2>
+            <>
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow">
+                <h2 className="mb-4 text-lg font-semibold text-slate-800">Akkumulerte meter</h2>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={data.metersByWeek.reduce<{ week: string; label: string; meters: number; accumulated: number }[]>(
+                        (acc, w) => {
+                          const prev = acc.length > 0 ? acc[acc.length - 1].accumulated : 0;
+                          acc.push({
+                            week: w.week,
+                            label: formatWeekLabel(w.week),
+                            meters: w.meters,
+                            accumulated: prev + w.meters,
+                          });
+                          return acc;
+                        },
+                        []
+                      )}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                      <Tooltip
+                        formatter={(value: number | undefined) => [
+                          value != null ? `${value.toLocaleString("nb-NO")} m` : "",
+                          "Akkumulert",
+                        ]}
+                        labelFormatter={(label) => `Uke: ${label}`}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="accumulated"
+                        stroke="#3b82f6"
+                        fill="#3b82f6"
+                        fillOpacity={0.3}
+                        name="Akkumulert"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow">
+                <h2 className="mb-4 text-lg font-semibold text-slate-800">Meter per uke</h2>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.metersByWeek.map((w) => ({ ...w, label: formatWeekLabel(w.week) }))}>
@@ -126,6 +170,7 @@ export default function StatistikkClient({
                 </ResponsiveContainer>
               </div>
             </div>
+            </>
           )}
 
           <div className="grid gap-6 sm:grid-cols-2">

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 function getDefaultPeriod() {
   const now = new Date();
   const to = formatLocalDate(now);
-  const from = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
+  const from = formatLocalDate(new Date(now.getFullYear(), 0, 1));
   return { from, to };
 }
 
