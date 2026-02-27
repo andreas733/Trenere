@@ -68,7 +68,7 @@ export default function TreningsokterClient({ sessions }: { sessions: Session[] 
                   </Link>
                   <Link
                     href={`/min-side/planlegging/a?velg=${s.id}`}
-                    className="flex min-h-[44px] items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    className="flex min-h-[44px] items-center rounded-lg bg-ssk-blue px-3 py-2 text-sm font-medium text-white hover:bg-ssk-700"
                   >
                     Planlegg
                   </Link>
@@ -80,7 +80,7 @@ export default function TreningsokterClient({ sessions }: { sessions: Session[] 
                   onClick={() =>
                     setExpandedId(expandedId === s.id ? null : s.id)
                   }
-                  className="min-h-[44px] py-2 text-sm text-blue-600 hover:text-blue-800"
+                  className="min-h-[44px] py-2 text-sm text-ssk-blue hover:text-ssk-800"
                 >
                   {expandedId === s.id ? "Skjul innhold" : "Vis innhold"}
                 </button>

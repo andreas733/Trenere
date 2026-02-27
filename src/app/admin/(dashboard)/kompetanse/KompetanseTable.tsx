@@ -116,7 +116,7 @@ export default function KompetanseTable({
           placeholder="Søk på navn eller e-post..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
         />
         {(search || selectedLevelIds.length > 0) && (
           <p className="mt-1 text-sm text-slate-500">
@@ -164,7 +164,7 @@ export default function KompetanseTable({
                   <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
                     <Link
                       href={`/admin/trainers/${t.id}`}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-ssk-blue hover:text-ssk-800"
                     >
                       {t.name}
                     </Link>
@@ -189,7 +189,7 @@ export default function KompetanseTable({
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/admin/trainers/${t.id}`}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-ssk-blue hover:text-ssk-800"
                     >
                       Rediger
                     </Link>

@@ -272,7 +272,7 @@ export default function TrainerEditForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-lg bg-ssk-blue px-4 py-2 font-medium text-white hover:bg-ssk-700 disabled:opacity-50"
         >
           {loading ? "Lagrer..." : "Lagre"}
         </button>

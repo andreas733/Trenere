@@ -19,7 +19,7 @@ export default async function TreningsokterPage() {
         <h1 className="text-2xl font-bold text-slate-800">Treningsøktbank</h1>
         <Link
           href="/admin/treningsokter/ny"
-          className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+          className="rounded-lg bg-ssk-blue px-4 py-2 font-medium text-white hover:bg-ssk-700"
         >
           Legg til økt
         </Link>
@@ -31,7 +31,7 @@ export default async function TreningsokterPage() {
             Ingen økter i banken.{" "}
             <Link
               href="/admin/treningsokter/ny"
-              className="text-blue-600 hover:text-blue-800"
+              className="text-ssk-blue hover:text-ssk-800"
             >
               Legg til første økt
             </Link>

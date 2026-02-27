@@ -134,7 +134,7 @@ function ExternalLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-600 underline hover:text-blue-800"
+      className="text-ssk-blue underline hover:text-ssk-800"
     >
       {children}
     </a>

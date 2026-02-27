@@ -167,7 +167,7 @@ export default function WageLevelsClient({
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-ssk-blue px-4 py-2 font-medium text-white hover:bg-ssk-700 disabled:opacity-50"
             >
               {loading ? "Legger til..." : "Legg til"}
             </button>
@@ -254,7 +254,7 @@ export default function WageLevelsClient({
                         <button
                           type="submit"
                           disabled={loading}
-                          className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                          className="rounded-lg bg-ssk-blue px-3 py-2 text-sm font-medium text-white hover:bg-ssk-700 disabled:opacity-50"
                         >
                           Lagre
                         </button>
@@ -283,7 +283,7 @@ export default function WageLevelsClient({
                       <button
                         type="button"
                         onClick={() => startEdit(wl)}
-                        className="mr-2 text-blue-600 hover:text-blue-800"
+                        className="mr-2 text-ssk-blue hover:text-ssk-800"
                       >
                         Rediger
                       </button>

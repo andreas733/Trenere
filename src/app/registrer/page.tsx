@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { registerTrainer } from "./actions";
 
@@ -48,7 +49,7 @@ export default function RegistrerPage() {
           </p>
           <Link
             href="/"
-            className="mt-6 inline-block text-blue-600 hover:underline"
+            className="mt-6 inline-block text-ssk-blue hover:underline"
           >
             Tilbake til forsiden
           </Link>
@@ -60,7 +61,14 @@ export default function RegistrerPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="w-full max-w-lg rounded-lg bg-white p-8 shadow-md">
-        <div className="mb-6 text-center">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <Image
+            src="/logo.png"
+            alt="Skien Svømmeklubb"
+            width={80}
+            height={80}
+            className="mb-4 h-20 w-20 rounded-full"
+          />
           <h1 className="text-2xl font-bold text-slate-800">
             Velkommen til Skien Svømmeklubb
           </h1>
@@ -87,7 +95,7 @@ export default function RegistrerPage() {
               type="email"
               required
               autoComplete="email"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
             />
           </div>
 
@@ -102,7 +110,7 @@ export default function RegistrerPage() {
               required
               minLength={6}
               autoComplete="new-password"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
             />
             <p className="mt-1 text-xs text-slate-500">Minst 6 tegn</p>
           </div>
@@ -116,7 +124,7 @@ export default function RegistrerPage() {
               name="name"
               type="text"
               required
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
             />
           </div>
 
@@ -133,7 +141,7 @@ export default function RegistrerPage() {
               maxLength={20}
               pattern="\d{11}"
               title="Fødselsnummer må være 11 siffer"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
             />
           </div>
 
@@ -148,7 +156,7 @@ export default function RegistrerPage() {
               required
               placeholder="F.eks. NO1234567890123"
               autoComplete="off"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
             />
           </div>
 
@@ -162,7 +170,7 @@ export default function RegistrerPage() {
               type="tel"
               required
               placeholder="F.eks. 12345678"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
             />
           </div>
 
@@ -176,7 +184,7 @@ export default function RegistrerPage() {
               type="text"
               required
               placeholder="Gate og husnummer"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
             />
           </div>
 
@@ -189,7 +197,7 @@ export default function RegistrerPage() {
               name="street2"
               type="text"
               placeholder="Leilighet, etasje, etc."
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
             />
           </div>
 
@@ -205,7 +213,7 @@ export default function RegistrerPage() {
                 required
                 placeholder="1234"
                 maxLength={10}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
               />
             </div>
             <div className="sm:col-span-2">
@@ -218,7 +226,7 @@ export default function RegistrerPage() {
                 type="text"
                 required
                 placeholder="Oslo"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-ssk-500 focus:outline-none focus:ring-1 focus:ring-ssk-500"
               />
             </div>
           </div>
@@ -227,7 +235,7 @@ export default function RegistrerPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 rounded-lg bg-ssk-blue px-4 py-3 font-medium text-white transition hover:bg-ssk-700 disabled:opacity-50"
             >
               {loading ? "Registrerer..." : "Registrer deg"}
             </button>

@@ -39,7 +39,7 @@ export default async function ProfilPage() {
             Det ser ikke ut til at du er registrert som trener. Kontakt klubben
             hvis du mener dette er en feil.
           </p>
-          <Link href="/min-side" className="text-blue-600 hover:underline">
+          <Link href="/min-side" className="text-ssk-blue hover:underline">
             Tilbake
           </Link>
         </div>

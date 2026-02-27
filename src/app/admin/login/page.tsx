@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -29,7 +30,16 @@ function AdminLoginForm() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
-        <h1 className="mb-2 text-2xl font-bold text-slate-800">
+        <div className="mb-4 flex justify-center">
+          <Image
+            src="/logo.png"
+            alt="Skien Svømmeklubb"
+            width={80}
+            height={80}
+            className="h-20 w-20 rounded-full"
+          />
+        </div>
+        <h1 className="mb-2 text-center text-2xl font-bold text-slate-800">
           Admin – Skien Svømmeklubb
         </h1>
         <p className="mb-6 text-slate-600">

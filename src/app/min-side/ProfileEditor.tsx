@@ -170,7 +170,7 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
           <button
             type="submit"
             disabled={loading}
-            className="min-h-[44px] rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="min-h-[44px] rounded-lg bg-ssk-blue px-4 py-2.5 font-medium text-white hover:bg-ssk-700 disabled:opacity-50"
           >
             {loading ? "Lagrer..." : "Lagre"}
           </button>
@@ -239,7 +239,7 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="mt-4 flex min-h-[44px] items-center text-sm text-blue-600 hover:text-blue-800"
+        className="mt-4 flex min-h-[44px] items-center text-sm text-ssk-blue hover:text-ssk-800"
       >
         Rediger
       </button>

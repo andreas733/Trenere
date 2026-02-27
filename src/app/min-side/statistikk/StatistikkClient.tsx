@@ -25,7 +25,7 @@ import {
   getWeeklyReferenceLineData,
 } from "@/lib/nsf-utviklingstrapp";
 
-const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6"];
+const COLORS = ["#0c3a6e", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 function formatWeekLabel(week: string): string {
   const d = parseLocalDate(week);
@@ -317,7 +317,7 @@ export default function StatistikkClient({
                 onClick={selectAllParties}
                 className={`min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium ${
                   selectedPartyIds.length === 0
-                    ? "bg-blue-600 text-white"
+                    ? "bg-ssk-blue text-white"
                     : "bg-slate-200 text-slate-700 hover:bg-slate-300"
                 }`}
               >
@@ -330,7 +330,7 @@ export default function StatistikkClient({
                   onClick={() => toggleParty(p.id)}
                   className={`min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium ${
                     isPartySelected(p.id)
-                      ? "bg-blue-600 text-white"
+                      ? "bg-ssk-blue text-white"
                       : "bg-slate-200 text-slate-700 hover:bg-slate-300"
                   }`}
                 >

@@ -23,7 +23,7 @@ export default async function TreningsokterMinSidePage() {
           <h1 className="mb-2 text-2xl font-bold text-slate-800">Treningsøktbank</h1>
           <p className="text-slate-600">
             Velg en økt for å se innholdet, eller{" "}
-            <Link href="/min-side/planlegging" className="text-blue-600 hover:text-blue-800">
+            <Link href="/min-side/planlegging" className="text-ssk-blue hover:text-ssk-800">
               gå til planlegging
             </Link>{" "}
             for å legge den på kalenderen.
@@ -31,7 +31,7 @@ export default async function TreningsokterMinSidePage() {
         </div>
         <Link
           href="/min-side/treningsokter/ny"
-          className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+          className="rounded-lg bg-ssk-blue px-4 py-2 font-medium text-white hover:bg-ssk-700"
         >
           Legg til økt
         </Link>

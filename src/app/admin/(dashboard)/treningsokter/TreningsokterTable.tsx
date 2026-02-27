@@ -32,7 +32,7 @@ export default function TreningsokterTable({ sessions }: { sessions: Session[] }
             <td className="px-4 py-3 text-right">
               <Link
                 href={`/admin/treningsokter/${s.id}`}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-ssk-blue hover:text-ssk-800"
               >
                 Rediger
               </Link>

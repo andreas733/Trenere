@@ -93,7 +93,7 @@ export default async function PlanleggingPartiPage({
             href={`/min-side/planlegging/${p.slug}`}
             className={`flex min-h-[44px] items-center rounded-lg px-3 py-2.5 text-sm font-medium sm:py-1.5 ${
               p.slug === slug
-                ? "bg-blue-600 text-white"
+                ? "bg-ssk-blue text-white"
                 : "bg-slate-200 text-slate-700 hover:bg-slate-300"
             }`}
           >
@@ -103,7 +103,7 @@ export default async function PlanleggingPartiPage({
       </div>
       <p className="mb-6 text-slate-600">
         Klikk på en dato for å legge til eller fjerne en planlagt økt.{" "}
-        <a href="/min-side/treningsokter" className="text-blue-600 hover:text-blue-800">
+        <a href="/min-side/treningsokter" className="text-ssk-blue hover:text-ssk-800">
           Se øktbanken
         </a>
       </p>

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import TrainerLoginForm from "./TrainerLoginForm";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,16 @@ export default async function HomePage() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center p-8">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
-        <h1 className="mb-2 text-2xl font-bold text-slate-800">
+        <div className="mb-4 flex justify-center">
+          <Image
+            src="/logo.png"
+            alt="Skien Svømmeklubb"
+            width={80}
+            height={80}
+            className="h-20 w-20 rounded-full"
+          />
+        </div>
+        <h1 className="mb-2 text-center text-2xl font-bold text-slate-800">
           Skien Svømmeklubb
         </h1>
         <p className="mb-6 text-slate-600">
@@ -34,7 +44,7 @@ export default async function HomePage() {
 
         <p className="mt-4 text-center text-sm text-slate-500">
           Har du ikke konto?{" "}
-          <Link href="/registrer" className="text-blue-600 hover:underline">
+          <Link href="/registrer" className="text-ssk-blue hover:underline">
             Registrer deg som trener
           </Link>
         </p>

@@ -463,7 +463,7 @@ export default function PlanleggingClient({
               onClick={() => setViewMode(m)}
               className={`min-h-[44px] rounded-lg border px-3 py-2.5 text-sm font-medium sm:py-2 ${
                 viewMode === m
-                  ? "border-blue-600 bg-blue-600 text-white"
+                  ? "border-ssk-blue bg-ssk-blue text-white"
                   : "border-slate-300 text-slate-700 hover:bg-slate-50"
               }`}
             >
@@ -552,7 +552,7 @@ export default function PlanleggingClient({
             <div
               className={`min-h-[120px] rounded-lg border p-4 ${
                 todayKey === formatDateKey(viewDate)
-                  ? "border-blue-300 bg-blue-50/50"
+                  ? "border-ssk-500/30 bg-ssk-blue/5"
                   : "border-slate-200"
               }`}
             >
@@ -560,7 +560,7 @@ export default function PlanleggingClient({
                 <span
                   className={`text-sm font-medium ${
                     todayKey === formatDateKey(viewDate)
-                      ? "text-blue-700"
+                      ? "text-ssk-700"
                       : "text-slate-700"
                   }`}
                 >
@@ -657,13 +657,13 @@ export default function PlanleggingClient({
                   <div
                     key={date || i}
                     className={`min-h-[80px] border-b border-r border-slate-200 p-2 last:border-r-0 ${
-                      isToday ? "bg-blue-50/50" : ""
+                      isToday ? "bg-ssk-blue/5" : ""
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span
                         className={`text-sm font-medium ${
-                          isToday ? "text-blue-700" : "text-slate-700"
+                          isToday ? "text-ssk-700" : "text-slate-700"
                         }`}
                       >
                         {date
@@ -671,7 +671,7 @@ export default function PlanleggingClient({
                           : ""}
                       </span>
                       {isMobileMonth && date && sessionCount > 0 && (
-                        <span className="h-2 w-2 rounded-full bg-blue-500" aria-hidden />
+                        <span className="h-2 w-2 rounded-full bg-ssk-blue" aria-hidden />
                       )}
                     </div>
                     {date && !isMobileMonth && (
@@ -801,7 +801,7 @@ export default function PlanleggingClient({
                       type="button"
                       onClick={() => handleSendEmail(p.id)}
                       disabled={sendingEmail}
-                      className="min-h-[44px] flex-1 rounded-lg border border-blue-600 bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                      className="min-h-[44px] flex-1 rounded-lg border border-ssk-blue bg-ssk-blue px-4 py-2.5 font-medium text-white hover:bg-ssk-700 disabled:opacity-50"
                     >
                       {sendingEmail ? "Sender..." : "Send til trenere"}
                     </button>
@@ -890,7 +890,7 @@ export default function PlanleggingClient({
                       type="button"
                       onClick={handleCopy}
                       disabled={loading || !copyTargetPartyId || !copyTargetDate}
-                      className="min-h-[44px] flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                      className="min-h-[44px] flex-1 rounded-lg bg-ssk-blue px-4 py-2.5 font-medium text-white hover:bg-ssk-700 disabled:opacity-50"
                     >
                       {loading ? "Kopierer..." : "Kopier"}
                     </button>
@@ -1019,7 +1019,7 @@ export default function PlanleggingClient({
                   type="button"
                   onClick={handleGenerateWorkout}
                   disabled={generating}
-                  className="min-h-[44px] w-full rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="min-h-[44px] w-full rounded-lg bg-ssk-blue px-4 py-2.5 font-medium text-white hover:bg-ssk-700 disabled:opacity-50"
                 >
                   {generating ? "Genererer..." : "Generer økt"}
                 </button>
@@ -1053,7 +1053,7 @@ export default function PlanleggingClient({
                     type="button"
                     onClick={() => handlePlanAI(selectedDate!)}
                     disabled={loading}
-                    className="min-h-[44px] flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="min-h-[44px] flex-1 rounded-lg bg-ssk-blue px-4 py-2.5 font-medium text-white hover:bg-ssk-700 disabled:opacity-50"
                   >
                     {loading ? "Planlegger..." : "Planlegg"}
                   </button>

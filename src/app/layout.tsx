@@ -8,6 +8,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Skien Svømmeklubb – Trenerregistrering",
   description: "Registrer deg som trener eller frivillig i Skien Svømmeklubb",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

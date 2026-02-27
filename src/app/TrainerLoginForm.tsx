@@ -79,7 +79,7 @@ export default function TrainerLoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-lg bg-ssk-blue px-4 py-3 font-medium text-white hover:bg-ssk-700 disabled:opacity-50"
       >
         {loading ? "Logger inn..." : "Logg inn"}
       </button>

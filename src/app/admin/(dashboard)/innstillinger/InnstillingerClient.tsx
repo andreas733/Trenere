@@ -43,7 +43,7 @@ export default function InnstillingerClient({
               checked={nsfEnabled}
               onChange={(e) => handleToggleNsf(e.target.checked)}
               disabled={loading}
-              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-slate-300 text-ssk-blue focus:ring-ssk-500"
             />
             <span className="text-slate-700">
               Vis NSF utviklingstrapp i statistikk
