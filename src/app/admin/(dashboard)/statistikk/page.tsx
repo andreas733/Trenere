@@ -17,6 +17,7 @@ export default async function StatistikkPage() {
   const { data: parties } = await supabase
     .from("parties")
     .select("id, name, slug")
+    .eq("has_planner", true)
     .order("sequence");
 
   return (

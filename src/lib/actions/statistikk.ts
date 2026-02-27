@@ -33,6 +33,15 @@ export async function getStatistikk(
     return { data: null, error: "Kun admin har tilgang til statistikk" };
   }
 
+  let partyFilterIds = partyIds;
+  if (partyFilterIds === undefined || partyFilterIds.length === 0) {
+    const { data: plannerParties } = await supabase
+      .from("parties")
+      .select("id")
+      .eq("has_planner", true);
+    partyFilterIds = plannerParties?.map((p) => p.id) ?? [];
+  }
+
   let query = supabase
     .from("planned_sessions")
     .select(`
@@ -52,8 +61,8 @@ export async function getStatistikk(
     .lte("planned_date", dateTo)
     .order("planned_date");
 
-  if (partyIds && partyIds.length > 0) {
-    query = query.in("party_id", partyIds);
+  if (partyFilterIds.length > 0) {
+    query = query.in("party_id", partyFilterIds);
   }
 
   const { data: rows, error } = await query;
