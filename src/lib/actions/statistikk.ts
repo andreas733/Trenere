@@ -22,6 +22,12 @@ export async function getStatistikk(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: "Ikke innlogget" };
 
+  const { data: trainer } = await supabase
+    .from("trainers")
+    .select("id")
+    .eq("auth_user_id", user.id)
+    .single();
+
   const identities = user.identities ?? [];
   const isAzure = identities.some((i) => i.provider === "azure");
   const { data: adminRow } = await supabase
@@ -29,8 +35,9 @@ export async function getStatistikk(
     .select("id")
     .eq("auth_user_id", user.id)
     .single();
-  if (!isAzure && !adminRow) {
-    return { data: null, error: "Kun admin har tilgang til statistikk" };
+
+  if (!trainer && !isAzure && !adminRow) {
+    return { data: null, error: "Kun trenere og admin har tilgang til statistikk" };
   }
 
   let partyFilterIds = partyIds;

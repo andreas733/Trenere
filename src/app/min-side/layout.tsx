@@ -27,6 +27,12 @@ export default function MinSideLayout({
               Planlegging
             </Link>
             <Link
+              href="/min-side/statistikk"
+              className="text-slate-600 hover:text-slate-900"
+            >
+              Statistikk
+            </Link>
+            <Link
               href="/min-side/profil"
               className="text-slate-600 hover:text-slate-900"
             >
