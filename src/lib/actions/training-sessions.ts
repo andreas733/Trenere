@@ -34,6 +34,8 @@ export async function createTrainingSession(data: {
   title: string;
   content: string;
   total_meters?: string | null;
+  focus_stroke?: string | null;
+  intensity?: string | null;
 }): Promise<{ error?: string; id?: string }> {
   const auth = await ensureTrainerOrAdmin();
   if ("error" in auth) return { error: auth.error };
@@ -47,6 +49,8 @@ export async function createTrainingSession(data: {
       title: data.title.trim().slice(0, 500),
       content: data.content,
       total_meters: data.total_meters?.trim().slice(0, 100) || null,
+      focus_stroke: data.focus_stroke?.trim() || null,
+      intensity: data.intensity?.trim() || null,
       created_by: trainerId,
     })
     .select("id")
@@ -65,6 +69,8 @@ export async function updateTrainingSession(
     title: string;
     content: string;
     total_meters?: string | null;
+    focus_stroke?: string | null;
+    intensity?: string | null;
   }
 ): Promise<{ error?: string }> {
   const auth = await ensureTrainerOrAdmin();
@@ -77,6 +83,8 @@ export async function updateTrainingSession(
       title: data.title.trim().slice(0, 500),
       content: data.content,
       total_meters: data.total_meters?.trim().slice(0, 100) || null,
+      focus_stroke: data.focus_stroke?.trim() || null,
+      intensity: data.intensity?.trim() || null,
     })
     .eq("id", id);
 

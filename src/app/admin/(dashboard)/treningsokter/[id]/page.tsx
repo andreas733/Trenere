@@ -13,7 +13,7 @@ export default async function RedigerTreningsoktPage({
   const admin = createAdminClient();
   const { data: session } = await admin
     .from("training_sessions")
-    .select("id, title, content, total_meters")
+    .select("id, title, content, total_meters, focus_stroke, intensity")
     .eq("id", id)
     .single();
 
@@ -30,6 +30,8 @@ export default async function RedigerTreningsoktPage({
         initialTitle={session.title}
         initialContent={session.content}
         initialTotalMeters={session.total_meters}
+        initialFocusStroke={session.focus_stroke}
+        initialIntensity={session.intensity}
       />
     </div>
   );

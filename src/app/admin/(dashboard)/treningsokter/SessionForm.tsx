@@ -9,9 +9,34 @@ import {
   deleteTrainingSession,
 } from "@/lib/actions/training-sessions";
 
+const STROKES = [
+  { value: "", label: "– Velg –" },
+  { value: "crawl", label: "Crawl" },
+  { value: "rygg", label: "Rygg" },
+  { value: "bryst", label: "Bryst" },
+  { value: "butterfly", label: "Butterfly" },
+  { value: "medley", label: "Medley" },
+];
+
+const INTENSITIES = [
+  { value: "", label: "– Velg –" },
+  { value: "lett", label: "Lett" },
+  { value: "moderat", label: "Moderat" },
+  { value: "høy", label: "Høy" },
+  { value: "topp", label: "Topp" },
+];
+
 type SessionFormProps = (
   | { mode: "create" }
-  | { mode: "edit"; id: string; initialTitle: string; initialContent: string; initialTotalMeters: string | null }
+  | {
+      mode: "edit";
+      id: string;
+      initialTitle: string;
+      initialContent: string;
+      initialTotalMeters: string | null;
+      initialFocusStroke: string | null;
+      initialIntensity: string | null;
+    }
 ) & { basePath?: string };
 
 export default function SessionForm(props: SessionFormProps) {
@@ -23,6 +48,8 @@ export default function SessionForm(props: SessionFormProps) {
     title: props.mode === "edit" ? props.initialTitle : "",
     content: props.mode === "edit" ? props.initialContent : "",
     total_meters: props.mode === "edit" ? (props.initialTotalMeters ?? "") : "",
+    focus_stroke: props.mode === "edit" ? (props.initialFocusStroke ?? "") : "",
+    intensity: props.mode === "edit" ? (props.initialIntensity ?? "") : "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,6 +62,8 @@ export default function SessionForm(props: SessionFormProps) {
         title: formData.title,
         content: formData.content,
         total_meters: formData.total_meters || null,
+        focus_stroke: formData.focus_stroke || null,
+        intensity: formData.intensity || null,
       });
       setLoading(false);
       if (result.error) {
@@ -50,6 +79,8 @@ export default function SessionForm(props: SessionFormProps) {
       title: formData.title,
       content: formData.content,
       total_meters: formData.total_meters || null,
+      focus_stroke: formData.focus_stroke || null,
+      intensity: formData.intensity || null,
     });
     setLoading(false);
     if (result.error) {
@@ -124,6 +155,42 @@ export default function SessionForm(props: SessionFormProps) {
               placeholder="F.eks. 5150/4850"
               className="w-full max-w-xs rounded-md border border-slate-300 px-3 py-2"
             />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="focus_stroke" className="mb-1 block text-sm font-medium text-slate-700">
+                Fokussvømmeart
+              </label>
+              <select
+                id="focus_stroke"
+                value={formData.focus_stroke}
+                onChange={(e) => setFormData((s) => ({ ...s, focus_stroke: e.target.value }))}
+                className="w-full rounded-md border border-slate-300 px-3 py-2"
+              >
+                {STROKES.map((s) => (
+                  <option key={s.value || "empty"} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="intensity" className="mb-1 block text-sm font-medium text-slate-700">
+                Intensitet
+              </label>
+              <select
+                id="intensity"
+                value={formData.intensity}
+                onChange={(e) => setFormData((s) => ({ ...s, intensity: e.target.value }))}
+                className="w-full rounded-md border border-slate-300 px-3 py-2"
+              >
+                {INTENSITIES.map((i) => (
+                  <option key={i.value || "empty"} value={i.value}>
+                    {i.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>
