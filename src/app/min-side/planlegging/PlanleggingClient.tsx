@@ -73,9 +73,13 @@ type GeneratedWorkout = {
 export default function PlanleggingClient({
   sessions,
   planned: initialPlanned,
+  partyId,
+  partySlug = "a",
 }: {
   sessions: Session[];
   planned: Planned[];
+  partyId: string;
+  partySlug?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -109,9 +113,9 @@ export default function PlanleggingClient({
     if (velgSessionId && sessions.some((s) => s.id === velgSessionId)) {
       setSelectedDate(formatDateKey(new Date()));
       setModalMode("bank");
-      router.replace("/min-side/planlegging", { scroll: false });
+      router.replace(`/min-side/planlegging/${partySlug}?velg=${velgSessionId}`, { scroll: false });
     }
-  }, [velgSessionId, sessions, router]);
+  }, [velgSessionId, sessions, router, partySlug]);
 
   const plannedByDate = useMemo(() => {
     const map: Record<string, Planned[]> = {};
@@ -177,7 +181,7 @@ export default function PlanleggingClient({
   async function handlePlan(sessionId: string, date: string) {
     setError(null);
     setLoading(true);
-    const result = await planSession(sessionId, date);
+    const result = await planSession(sessionId, date, partyId);
     setLoading(false);
     if (result.error) {
       setError(result.error);
@@ -208,6 +212,7 @@ export default function PlanleggingClient({
       title: generatedWorkout.title,
       content: generatedWorkout.content,
       totalMeters: generatedWorkout.totalMeters,
+      partyId,
     });
     setLoading(false);
     if (result.error) {

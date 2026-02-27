@@ -124,6 +124,38 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["admin_users"]["Insert"]>;
       };
+      parties: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          has_planner: boolean;
+          sequence: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          has_planner?: boolean;
+          sequence?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["parties"]["Insert"]>;
+      };
+      trainer_parties: {
+        Row: {
+          trainer_id: string;
+          party_id: string;
+        };
+        Insert: {
+          trainer_id: string;
+          party_id: string;
+        };
+        Update: never;
+      };
       training_sessions: {
         Row: {
           id: string;
@@ -155,6 +187,7 @@ export interface Database {
           session_id: string | null;
           planned_date: string;
           planned_by: string | null;
+          party_id: string;
           created_at: string;
           ai_title: string | null;
           ai_content: string | null;
@@ -165,6 +198,7 @@ export interface Database {
           session_id?: string | null;
           planned_date: string;
           planned_by?: string | null;
+          party_id: string;
           created_at?: string;
           ai_title?: string | null;
           ai_content?: string | null;
@@ -179,6 +213,8 @@ export interface Database {
 export type Trainer = Database["public"]["Tables"]["trainers"]["Row"];
 export type TrainerLevel = Database["public"]["Tables"]["trainer_levels"]["Row"];
 export type TrainerCertification = Database["public"]["Tables"]["trainer_certifications"]["Row"];
+export type TrainerParty = Database["public"]["Tables"]["trainer_parties"]["Row"];
 export type WageLevel = Database["public"]["Tables"]["wage_levels"]["Row"];
+export type Party = Database["public"]["Tables"]["parties"]["Row"];
 export type TrainingSession = Database["public"]["Tables"]["training_sessions"]["Row"];
 export type PlannedSession = Database["public"]["Tables"]["planned_sessions"]["Row"];

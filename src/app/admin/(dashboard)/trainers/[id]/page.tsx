@@ -19,7 +19,8 @@ export default async function TrainerEditPage({
       `
       *,
       wage_levels (id, name, hourly_wage, minimum_hours),
-      trainer_certifications (level_id)
+      trainer_certifications (level_id),
+      trainer_parties (party_id)
     `
     )
     .eq("id", id)
@@ -29,18 +30,16 @@ export default async function TrainerEditPage({
     notFound();
   }
 
-  const { data: wageLevels } = await supabase
-    .from("wage_levels")
-    .select("id, name, hourly_wage, minimum_hours")
-    .order("sequence");
-
-  const { data: trainerLevels } = await supabase
-    .from("trainer_levels")
-    .select("id, name, sequence")
-    .order("sequence");
+  const [wageLevelsRes, trainerLevelsRes, partiesRes] = await Promise.all([
+    supabase.from("wage_levels").select("id, name, hourly_wage, minimum_hours").order("sequence"),
+    supabase.from("trainer_levels").select("id, name, sequence").order("sequence"),
+    supabase.from("parties").select("id, name").order("sequence"),
+  ]);
 
   const selectedLevelIds = (trainer.trainer_certifications ?? [])
     .map((c: { level_id: string }) => c.level_id);
+  const selectedPartyIds = (trainer.trainer_parties ?? [])
+    .map((p: { party_id: string }) => p.party_id);
 
   return (
     <div>
@@ -57,9 +56,11 @@ export default async function TrainerEditPage({
       </h1>
       <TrainerEditForm
         trainer={trainer}
-        wageLevels={wageLevels ?? []}
-        trainerLevels={trainerLevels ?? []}
+        wageLevels={wageLevelsRes.data ?? []}
+        trainerLevels={trainerLevelsRes.data ?? []}
+        parties={partiesRes.data ?? []}
         selectedLevelIds={selectedLevelIds}
+        selectedPartyIds={selectedPartyIds}
       />
     </div>
   );

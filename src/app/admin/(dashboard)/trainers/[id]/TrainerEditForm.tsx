@@ -18,9 +18,15 @@ type TrainerLevel = {
   sequence: number;
 };
 
+type Party = {
+  id: string;
+  name: string;
+};
+
 type TrainerWithWage = Trainer & {
   wage_levels: WageLevel | null;
   trainer_certifications?: { level_id: string }[];
+  trainer_parties?: { party_id: string }[];
 };
 
 function formatDateForInput(d: string | null) {
@@ -32,12 +38,16 @@ export default function TrainerEditForm({
   trainer,
   wageLevels,
   trainerLevels,
+  parties,
   selectedLevelIds,
+  selectedPartyIds,
 }: {
   trainer: TrainerWithWage;
   wageLevels: WageLevel[];
   trainerLevels: TrainerLevel[];
+  parties: Party[];
   selectedLevelIds: string[];
+  selectedPartyIds: string[];
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -50,6 +60,7 @@ export default function TrainerEditForm({
     contract_to_date: formatDateForInput(trainer.contract_to_date),
     contract_fast: trainer.contract_fast ?? false,
     level_ids: selectedLevelIds,
+    party_ids: selectedPartyIds,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -63,6 +74,7 @@ export default function TrainerEditForm({
       contract_to_date: formData.contract_fast ? null : (formData.contract_to_date || null),
       contract_fast: formData.contract_fast,
       level_ids: formData.level_ids,
+      party_ids: formData.party_ids,
     });
     setLoading(false);
     if (result.error) {
@@ -95,6 +107,38 @@ export default function TrainerEditForm({
           {error}
         </div>
       )}
+
+      <div className="rounded-lg border border-slate-200 bg-white p-6">
+        <h2 className="mb-4 font-semibold text-slate-800">Partier</h2>
+        <p className="mb-4 text-sm text-slate-600">
+          Velg hvilke partier treneren er knyttet til (ett eller flere).
+        </p>
+        <div className="mb-6 space-y-2">
+          {parties.map((party) => (
+            <label key={party.id} className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={formData.party_ids.includes(party.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFormData((s) => ({
+                      ...s,
+                      party_ids: [...s.party_ids, party.id],
+                    }));
+                  } else {
+                    setFormData((s) => ({
+                      ...s,
+                      party_ids: s.party_ids.filter((id) => id !== party.id),
+                    }));
+                  }
+                }}
+                className="rounded border-slate-300"
+              />
+              <span className="text-sm text-slate-700">{party.name}</span>
+            </label>
+          ))}
+        </div>
+      </div>
 
       <div className="rounded-lg border border-slate-200 bg-white p-6">
         <h2 className="mb-4 font-semibold text-slate-800">Trenerutdanning</h2>

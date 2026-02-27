@@ -111,7 +111,8 @@ export async function deleteTrainingSession(id: string): Promise<{ error?: strin
 
 export async function planSession(
   sessionId: string,
-  plannedDate: string
+  plannedDate: string,
+  partyId: string
 ): Promise<{ error?: string }> {
   const auth = await ensureTrainerOrAdmin();
   if ("error" in auth) return { error: auth.error };
@@ -123,6 +124,7 @@ export async function planSession(
     session_id: sessionId,
     planned_date: plannedDate,
     planned_by: trainerId,
+    party_id: partyId,
   });
 
   if (error) return { error: error.message };
@@ -149,6 +151,7 @@ export async function planSessionWithAIContent(data: {
   title: string;
   content: string;
   totalMeters?: string | null;
+  partyId: string;
 }): Promise<{ error?: string }> {
   const auth = await ensureTrainerOrAdmin();
   if ("error" in auth) return { error: auth.error };
@@ -160,6 +163,7 @@ export async function planSessionWithAIContent(data: {
     session_id: null,
     planned_date: data.plannedDate,
     planned_by: trainerId,
+    party_id: data.partyId,
     ai_title: data.title.trim().slice(0, 500),
     ai_content: data.content,
     ai_total_meters: data.totalMeters?.trim().slice(0, 100) || null,
