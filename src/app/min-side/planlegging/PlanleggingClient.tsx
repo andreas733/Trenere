@@ -36,7 +36,11 @@ type Planned = {
   title: string;
   content: string | null;
   totalMeters: string | null;
+  aiFocusStroke?: string | null;
+  aiIntensity?: string | null;
 };
+
+type PlannerParty = { id: string; name: string; slug: string };
 
 const WEEKDAY_NAMES = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
 const MONTH_NAMES = [
@@ -71,7 +75,7 @@ function getMonday(d: Date): Date {
   return copy;
 }
 
-type ModalMode = "choice" | "bank" | "ai_form" | "ai_preview" | "view";
+type ModalMode = "choice" | "bank" | "ai_form" | "ai_preview" | "view" | "copy_to";
 
 type GeneratedWorkout = {
   title: string;
@@ -84,11 +88,13 @@ export default function PlanleggingClient({
   planned: initialPlanned,
   partyId,
   partySlug = "a",
+  plannerParties = [],
 }: {
   sessions: Session[];
   planned: Planned[];
   partyId: string;
   partySlug?: string;
+  plannerParties?: PlannerParty[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -111,6 +117,9 @@ export default function PlanleggingClient({
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [copyTargetPartyId, setCopyTargetPartyId] = useState<string>("");
+  const [copyTargetDate, setCopyTargetDate] = useState<string>("");
+  const [copyTargetMeters, setCopyTargetMeters] = useState<string>("");
 
   const [aiForm, setAiForm] = useState({
     stroke: "crawl",
@@ -199,6 +208,9 @@ export default function PlanleggingClient({
     setGeneratedWorkout(null);
     setError(null);
     setSendEmailResult(null);
+    setCopyTargetPartyId("");
+    setCopyTargetDate("");
+    setCopyTargetMeters("");
   }
 
   async function handleSendEmail(plannedId: string) {
@@ -333,6 +345,97 @@ export default function PlanleggingClient({
     setSelectedDate(null);
     setSelectedPlannedId(null);
     router.refresh();
+  }
+
+  async function handleCopy() {
+    const p = planned.find((x) => x.id === selectedPlannedId);
+    if (!p || !copyTargetPartyId || !copyTargetDate) {
+      setError("Velg parti og dato");
+      return;
+    }
+    const targetMetersStr = copyTargetMeters.trim();
+    const targetMetersNum = targetMetersStr ? parseMeters(targetMetersStr) : null;
+    const currentMetersNum = parseMeters(p.totalMeters ?? "");
+    const metersChanged =
+      targetMetersNum !== null &&
+      targetMetersNum > 0 &&
+      targetMetersNum !== currentMetersNum;
+
+    setError(null);
+    setLoading(true);
+    try {
+      let title = p.title;
+      let content = p.content ?? "";
+      let totalMeters = p.totalMeters ?? "";
+
+      if (metersChanged && targetMetersNum !== null) {
+        const res = await fetch("/api/adjust-workout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: p.title,
+            content: p.content ?? "",
+            totalMeters: p.totalMeters ?? "",
+            targetMeters: String(targetMetersNum),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error ?? "Kunne ikke justere økten");
+          setLoading(false);
+          return;
+        }
+        title = data.title;
+        content = data.content;
+        totalMeters = data.totalMeters;
+      }
+
+      if (p.session_id && !metersChanged) {
+        const result = await planSession(
+          p.session_id,
+          copyTargetDate,
+          copyTargetPartyId
+        );
+        if (result.error) {
+          setError(result.error);
+          setLoading(false);
+          return;
+        }
+      } else {
+        const result = await planSessionWithAIContent({
+          plannedDate: copyTargetDate,
+          title,
+          content,
+          totalMeters: totalMeters || null,
+          focusStroke: p.aiFocusStroke ?? null,
+          intensity: p.aiIntensity ?? null,
+          partyId: copyTargetPartyId,
+        });
+        if (result.error) {
+          setError(result.error);
+          setLoading(false);
+          return;
+        }
+      }
+
+      setPlanned((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          session_id: metersChanged ? null : p.session_id,
+          planned_date: copyTargetDate,
+          title,
+          content,
+          totalMeters: totalMeters || null,
+          aiFocusStroke: p.aiFocusStroke,
+          aiIntensity: p.aiIntensity,
+        },
+      ]);
+      closeModal();
+      router.refresh();
+    } finally {
+      setLoading(false);
+    }
   }
 
   const dateLabel = selectedDate
@@ -629,9 +732,11 @@ export default function PlanleggingClient({
             <h3 className="mb-4 font-semibold text-slate-800">
               {modalMode === "view"
                 ? `Planlagt økt – ${dateLabel}`
-                : modalMode === "choice"
-                  ? `Legg til økt for ${dateLabel}`
-                  : `Velg økt for ${dateLabel}`}
+                : modalMode === "copy_to"
+                  ? "Kopier til annet parti"
+                  : modalMode === "choice"
+                    ? `Legg til økt for ${dateLabel}`
+                    : `Velg økt for ${dateLabel}`}
             </h3>
 
             {modalMode === "view" && selectedPlannedId && (() => {
@@ -699,6 +804,97 @@ export default function PlanleggingClient({
                       className="min-h-[44px] flex-1 rounded-lg border border-blue-600 bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                     >
                       {sendingEmail ? "Sender..." : "Send til trenere"}
+                    </button>
+                    {plannerParties.filter((x) => x.id !== partyId).length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextWeek = new Date(selectedDate!);
+                          nextWeek.setDate(nextWeek.getDate() + 7);
+                          setCopyTargetDate(formatDateKey(nextWeek));
+                          setCopyTargetMeters(p.totalMeters ?? "");
+                          setCopyTargetPartyId(
+                            plannerParties.find((x) => x.id !== partyId)?.id ?? ""
+                          );
+                          setModalMode("copy_to");
+                        }}
+                        className="min-h-[44px] flex-1 rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
+                      >
+                        Kopier til
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {modalMode === "copy_to" && selectedPlannedId && (() => {
+              const p = planned.find((x) => x.id === selectedPlannedId);
+              if (!p) return null;
+              const targetParties = plannerParties.filter((x) => x.id !== partyId);
+              return (
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-600">
+                    Kopier «{p.title}» til et annet parti.
+                  </p>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Velg parti
+                    </label>
+                    <select
+                      value={copyTargetPartyId}
+                      onChange={(e) => setCopyTargetPartyId(e.target.value)}
+                      className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
+                    >
+                      <option value="">Velg parti</option>
+                      {targetParties.map((party) => (
+                        <option key={party.id} value={party.id}>
+                          {party.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Dato
+                    </label>
+                    <input
+                      type="date"
+                      value={copyTargetDate}
+                      onChange={(e) => setCopyTargetDate(e.target.value)}
+                      className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Antall meter (valgfritt – tom = uendret)
+                    </label>
+                    <input
+                      type="text"
+                      value={copyTargetMeters}
+                      onChange={(e) => setCopyTargetMeters(e.target.value)}
+                      placeholder={p.totalMeters ?? "F.eks. 4000"}
+                      className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
+                    />
+                    <p className="mt-1 text-xs text-slate-500">
+                      Ved endring tilpasses økten automatisk med AI.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setModalMode("view")}
+                      className="min-h-[44px] flex-1 rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      Tilbake
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      disabled={loading || !copyTargetPartyId || !copyTargetDate}
+                      className="min-h-[44px] flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {loading ? "Kopierer..." : "Kopier"}
                     </button>
                   </div>
                 </div>

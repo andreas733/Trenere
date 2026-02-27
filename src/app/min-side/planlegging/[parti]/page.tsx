@@ -41,7 +41,7 @@ export default async function PlanleggingPartiPage({
       .order("created_at", { ascending: false }),
     supabase
       .from("planned_sessions")
-      .select("id, session_id, planned_date, ai_title, ai_content, ai_total_meters, training_sessions ( title, content, total_meters )")
+      .select("id, session_id, planned_date, ai_title, ai_content, ai_total_meters, ai_focus_stroke, ai_intensity, training_sessions ( title, content, total_meters )")
       .eq("party_id", party.id)
       .order("planned_date"),
   ]);
@@ -70,6 +70,8 @@ export default async function PlanleggingPartiPage({
       title: title || "",
       content: content || null,
       totalMeters: totalMeters || null,
+      aiFocusStroke: p.session_id ? null : (p.ai_focus_stroke ?? null),
+      aiIntensity: p.session_id ? null : (p.ai_intensity ?? null),
     };
   });
 
@@ -110,6 +112,7 @@ export default async function PlanleggingPartiPage({
         planned={plannedWithTitle}
         partyId={party.id}
         partySlug={party.slug}
+        plannerParties={plannerParties ?? []}
       />
     </div>
   );
