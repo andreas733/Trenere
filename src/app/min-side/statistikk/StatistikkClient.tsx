@@ -253,7 +253,7 @@ export default function StatistikkClient({
 
   function toggleParty(partyId: string) {
     setSelectedPartyIds((prev) => {
-      if (prev.length === 0) return parties.filter((p) => p.id !== partyId).map((p) => p.id);
+      if (prev.length === 0) return [partyId];
       if (prev.includes(partyId)) return prev.filter((id) => id !== partyId);
       return [...prev, partyId];
     });
