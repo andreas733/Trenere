@@ -809,9 +809,7 @@ export default function PlanleggingClient({
                       <button
                         type="button"
                         onClick={() => {
-                          const nextWeek = new Date(selectedDate!);
-                          nextWeek.setDate(nextWeek.getDate() + 7);
-                          setCopyTargetDate(formatDateKey(nextWeek));
+                          setCopyTargetDate(p.planned_date);
                           setCopyTargetMeters(p.totalMeters ?? "");
                           setCopyTargetPartyId(
                             plannerParties.find((x) => x.id !== partyId)?.id ?? ""
