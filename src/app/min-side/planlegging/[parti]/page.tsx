@@ -89,7 +89,7 @@ export default async function PlanleggingPartiPage({
           <a
             key={p.id}
             href={`/min-side/planlegging/${p.slug}`}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+            className={`flex min-h-[44px] items-center rounded-lg px-3 py-2.5 text-sm font-medium sm:py-1.5 ${
               p.slug === slug
                 ? "bg-blue-600 text-white"
                 : "bg-slate-200 text-slate-700 hover:bg-slate-300"

@@ -309,7 +309,7 @@ export default function StatistikkClient({
               <button
                 type="button"
                 onClick={selectAllParties}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+                className={`min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium ${
                   selectedPartyIds.length === 0
                     ? "bg-blue-600 text-white"
                     : "bg-slate-200 text-slate-700 hover:bg-slate-300"
@@ -322,7 +322,7 @@ export default function StatistikkClient({
                   key={p.id}
                   type="button"
                   onClick={() => toggleParty(p.id)}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+                  className={`min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium ${
                     isPartySelected(p.id)
                       ? "bg-blue-600 text-white"
                       : "bg-slate-200 text-slate-700 hover:bg-slate-300"
@@ -343,7 +343,7 @@ export default function StatistikkClient({
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2"
+            className="min-h-[44px] rounded-md border border-slate-300 px-3 py-2"
           />
         </div>
         <div>
@@ -355,7 +355,7 @@ export default function StatistikkClient({
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2"
+            className="min-h-[44px] rounded-md border border-slate-300 px-3 py-2"
           />
         </div>
       </div>

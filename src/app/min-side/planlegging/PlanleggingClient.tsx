@@ -1,6 +1,20 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+
+const MOBILE_BREAKPOINT = 640;
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    setIsMobile(mq.matches);
+    const h = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
+  return isMobile;
+}
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   planSession,
@@ -80,6 +94,7 @@ export default function PlanleggingClient({
   const searchParams = useSearchParams();
   const velgSessionId = searchParams.get("velg");
 
+  const isMobile = useIsMobile();
   const [viewMode, setViewMode] = useState<"week" | "month" | "day">("week");
   const [viewDate, setViewDate] = useState(() => {
     const now = new Date();
@@ -108,6 +123,12 @@ export default function PlanleggingClient({
   useEffect(() => {
     setPlanned(initialPlanned);
   }, [initialPlanned]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT) {
+      setViewMode("day");
+    }
+  }, []);
 
   useEffect(() => {
     if (velgSessionId && sessions.some((s) => s.id === velgSessionId)) {
@@ -328,14 +349,14 @@ export default function PlanleggingClient({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="flex gap-2">
           {(["week", "month", "day"] as const).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setViewMode(m)}
-              className={`rounded-lg border px-3 py-2 text-sm font-medium ${
+              className={`min-h-[44px] rounded-lg border px-3 py-2.5 text-sm font-medium sm:py-2 ${
                 viewMode === m
                   ? "border-blue-600 bg-blue-600 text-white"
                   : "border-slate-300 text-slate-700 hover:bg-slate-50"
@@ -345,7 +366,7 @@ export default function PlanleggingClient({
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <span className="text-sm font-medium text-slate-600">
             Totalt: {totalMetersSum.toLocaleString("nb-NO")} m
           </span>
@@ -365,7 +386,7 @@ export default function PlanleggingClient({
                   setViewDate(d);
                 }
               }}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="min-h-[44px] rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:py-2"
             >
               Forrige
             </button>
@@ -384,7 +405,7 @@ export default function PlanleggingClient({
                   setViewDate(d);
                 }
               }}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="min-h-[44px] rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:py-2"
             >
               Neste
             </button>
@@ -458,7 +479,7 @@ export default function PlanleggingClient({
                           setSelectedPlannedId(p.id);
                           setModalMode("view");
                         }}
-                        className="w-full rounded-lg bg-slate-100 p-4 text-left hover:bg-slate-200"
+                        className="min-h-[48px] w-full rounded-lg bg-slate-100 p-4 text-left hover:bg-slate-200"
                       >
                         <p className="font-medium text-slate-800">{p.title}</p>
                         {p.totalMeters && (
@@ -478,7 +499,7 @@ export default function PlanleggingClient({
                         setSelectedPlannedId(null);
                         setModalMode("choice");
                       }}
-                      className="w-full rounded-lg border-2 border-dashed border-slate-300 py-4 text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                      className="min-h-[48px] w-full rounded-lg border-2 border-dashed border-slate-300 py-4 text-slate-500 hover:border-slate-400 hover:text-slate-700"
                     >
                       Legg til økt
                     </button>
@@ -488,22 +509,23 @@ export default function PlanleggingClient({
             </div>
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
-              {WEEKDAY_NAMES.map((name) => (
-                <div
-                  key={name}
-                  className="px-2 py-2 text-center text-xs font-medium text-slate-600"
-                >
-                  {name}
-                </div>
-              ))}
-            </div>
-            <div
-              className={`grid grid-cols-7 ${
-                viewMode === "week" ? "grid-rows-1" : ""
-              }`}
-            >
+          <div className="overflow-x-auto">
+            <div className="min-w-[480px] sm:min-w-0">
+              <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
+                {WEEKDAY_NAMES.map((name) => (
+                  <div
+                    key={name}
+                    className="px-2 py-2 text-center text-xs font-medium text-slate-600"
+                  >
+                    {name}
+                  </div>
+                ))}
+              </div>
+              <div
+                className={`grid grid-cols-7 ${
+                  viewMode === "week" ? "grid-rows-1" : ""
+                }`}
+              >
               {(viewMode === "week" ? visibleDateKeys : days).map((cell, i) => {
                 const date =
                   viewMode === "week"
@@ -523,6 +545,9 @@ export default function PlanleggingClient({
                 }
                 const isToday = date === todayKey;
 
+                const sessionCount = date ? (plannedByDate[date] ?? []).length : 0;
+                const isMobileMonth = isMobile && viewMode === "month";
+
                 return (
                   <div
                     key={date || i}
@@ -540,8 +565,11 @@ export default function PlanleggingClient({
                           ? new Date(date + "T12:00:00").getDate()
                           : ""}
                       </span>
+                      {isMobileMonth && date && sessionCount > 0 && (
+                        <span className="h-2 w-2 rounded-full bg-blue-500" aria-hidden />
+                      )}
                     </div>
-                    {date && (
+                    {date && !isMobileMonth && (
                       <div className="mt-1 space-y-1">
                         {(plannedByDate[date] ?? []).map((p) => (
                           <button
@@ -552,7 +580,7 @@ export default function PlanleggingClient({
                               setSelectedPlannedId(p.id);
                               setModalMode("view");
                             }}
-                            className="block w-full rounded bg-slate-100 p-1.5 text-left text-xs hover:bg-slate-200"
+                            className="block min-h-[44px] w-full rounded bg-slate-100 p-2 text-left text-xs hover:bg-slate-200 sm:min-h-0 sm:p-1.5"
                           >
                             <p className="truncate font-medium text-slate-800">
                               {p.title}
@@ -566,23 +594,36 @@ export default function PlanleggingClient({
                             setSelectedPlannedId(null);
                             setModalMode("choice");
                           }}
-                          className="block w-full rounded border border-dashed border-slate-300 py-1 text-xs text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                          className="block min-h-[44px] w-full rounded border border-dashed border-slate-300 py-2 text-xs text-slate-500 hover:border-slate-400 hover:text-slate-700 sm:min-h-0 sm:py-1"
                         >
                           Legg til økt
                         </button>
                       </div>
                     )}
+                    {date && isMobileMonth && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setViewDate(new Date(date + "T12:00:00"));
+                          setViewMode("day");
+                        }}
+                        className="mt-1 flex min-h-[36px] w-full items-center justify-center rounded border border-slate-300 text-xs text-slate-600 hover:bg-slate-50"
+                      >
+                        {sessionCount > 0 ? `${sessionCount} økt${sessionCount > 1 ? "er" : ""}` : "Se dag"}
+                      </button>
+                    )}
                   </div>
                 );
               })}
+              </div>
             </div>
-          </>
+          </div>
         )}
       </div>
 
       {selectedDate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
+        <div className="modal-overlay-safe fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-4 shadow-xl sm:p-6">
             <h3 className="mb-4 font-semibold text-slate-800">
               {modalMode === "view"
                 ? `Planlagt økt – ${dateLabel}`
@@ -628,7 +669,7 @@ export default function PlanleggingClient({
                     <button
                       type="button"
                       onClick={closeModal}
-                      className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                      className="min-h-[44px] flex-1 rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
                     >
                       Lukk
                     </button>
@@ -637,7 +678,7 @@ export default function PlanleggingClient({
                       onClick={() => {
                         setModalMode("choice");
                       }}
-                      className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                      className="min-h-[44px] flex-1 rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
                     >
                       Endre
                     </button>
@@ -645,7 +686,7 @@ export default function PlanleggingClient({
                       type="button"
                       onClick={() => handleUnplan(p.id, selectedDate)}
                       disabled={loading}
-                      className="flex-1 rounded-lg bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                      className="min-h-[44px] flex-1 rounded-lg bg-red-600 px-4 py-2.5 font-medium text-white hover:bg-red-700 disabled:opacity-50"
                     >
                       Fjern
                     </button>
@@ -653,7 +694,7 @@ export default function PlanleggingClient({
                       type="button"
                       onClick={() => handleSendEmail(p.id)}
                       disabled={sendingEmail}
-                      className="flex-1 rounded-lg border border-blue-600 bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                      className="min-h-[44px] flex-1 rounded-lg border border-blue-600 bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                     >
                       {sendingEmail ? "Sender..." : "Send til trenere"}
                     </button>
@@ -667,14 +708,14 @@ export default function PlanleggingClient({
                 <button
                   type="button"
                   onClick={() => setModalMode("bank")}
-                  className="block w-full rounded-lg border border-slate-200 bg-white p-4 text-left font-medium text-slate-800 hover:bg-slate-50"
+                  className="flex min-h-[48px] w-full items-center rounded-lg border border-slate-200 bg-white p-4 text-left font-medium text-slate-800 hover:bg-slate-50"
                 >
                   Velg fra bank
                 </button>
                 <button
                   type="button"
                   onClick={() => setModalMode("ai_form")}
-                  className="block w-full rounded-lg border border-slate-200 bg-white p-4 text-left font-medium text-slate-800 hover:bg-slate-50"
+                  className="flex min-h-[48px] w-full items-center rounded-lg border border-slate-200 bg-white p-4 text-left font-medium text-slate-800 hover:bg-slate-50"
                 >
                   Generer ny økt med AI
                 </button>
@@ -694,7 +735,7 @@ export default function PlanleggingClient({
                       type="button"
                       onClick={() => handlePlan(s.id, selectedDate)}
                       disabled={loading}
-                      className="block w-full rounded-lg border border-slate-200 bg-white p-3 text-left text-sm hover:bg-slate-50 disabled:opacity-50"
+                      className="flex min-h-[48px] w-full items-center rounded-lg border border-slate-200 bg-white p-3 text-left text-sm hover:bg-slate-50 disabled:opacity-50"
                     >
                       <span className="font-medium text-slate-800">{s.title}</span>
                       {s.total_meters && (
@@ -719,7 +760,7 @@ export default function PlanleggingClient({
                     onChange={(e) =>
                       setAiForm((s) => ({ ...s, stroke: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 px-3 py-2"
+                    className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
                   >
                     {STROKES.map((s) => (
                       <option key={s.value} value={s.value}>
@@ -740,7 +781,7 @@ export default function PlanleggingClient({
                     onChange={(e) =>
                       setAiForm((s) => ({ ...s, totalMeters: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 px-3 py-2"
+                    className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
                   />
                 </div>
                 <div>
@@ -752,7 +793,7 @@ export default function PlanleggingClient({
                     onChange={(e) =>
                       setAiForm((s) => ({ ...s, intensity: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 px-3 py-2"
+                    className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
                   >
                     {INTENSITIES.map((i) => (
                       <option key={i.value} value={i.value}>
@@ -765,7 +806,7 @@ export default function PlanleggingClient({
                   type="button"
                   onClick={handleGenerateWorkout}
                   disabled={generating}
-                  className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="min-h-[44px] w-full rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                 >
                   {generating ? "Genererer..." : "Generer økt"}
                 </button>
@@ -791,7 +832,7 @@ export default function PlanleggingClient({
                   <button
                     type="button"
                     onClick={() => setModalMode("ai_form")}
-                    className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                    className="min-h-[44px] flex-1 rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
                   >
                     Prøv igjen
                   </button>
@@ -799,7 +840,7 @@ export default function PlanleggingClient({
                     type="button"
                     onClick={() => handlePlanAI(selectedDate!)}
                     disabled={loading}
-                    className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="min-h-[44px] flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                   >
                     {loading ? "Planlegger..." : "Planlegg"}
                   </button>
@@ -811,7 +852,7 @@ export default function PlanleggingClient({
               <button
                 type="button"
                 onClick={closeModal}
-                className="mt-4 w-full rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
               >
                 Lukk
               </button>
@@ -820,7 +861,7 @@ export default function PlanleggingClient({
               <button
                 type="button"
                 onClick={() => setModalMode("choice")}
-                className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                className="mt-2 flex min-h-[44px] w-full items-center justify-center rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
               >
                 Tilbake
               </button>
@@ -829,7 +870,7 @@ export default function PlanleggingClient({
               <button
                 type="button"
                 onClick={() => setModalMode("choice")}
-                className="mt-4 w-full rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
               >
                 Tilbake
               </button>

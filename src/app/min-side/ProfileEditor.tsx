@@ -73,7 +73,7 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
             onChange={(e) =>
               setFormData((s) => ({ ...s, name: e.target.value }))
             }
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
             required
           />
         </div>
@@ -96,7 +96,7 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
               setFormData((s) => ({ ...s, phone: e.target.value }))
             }
             placeholder="F.eks. 12345678"
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
           />
         </div>
         <div>
@@ -118,7 +118,7 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
               setFormData((s) => ({ ...s, street: e.target.value }))
             }
             placeholder="Gate og husnummer"
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
           />
         </div>
         <div>
@@ -132,7 +132,7 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
               setFormData((s) => ({ ...s, street2: e.target.value }))
             }
             placeholder="Leilighet, etasje, etc."
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -148,7 +148,7 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
               }
               placeholder="1234"
               maxLength={10}
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
+              className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
             />
           </div>
           <div>
@@ -162,15 +162,15 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
                 setFormData((s) => ({ ...s, city: e.target.value }))
               }
               placeholder="Oslo"
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
+              className="min-h-[44px] w-full rounded-md border border-slate-300 px-3 py-2"
             />
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="min-h-[44px] rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {loading ? "Lagrer..." : "Lagre"}
           </button>
@@ -187,7 +187,7 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
                 city: trainer.city ?? "",
               });
             }}
-            className="rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
+            className="min-h-[44px] rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
           >
             Avbryt
           </button>
@@ -239,7 +239,7 @@ export default function ProfileEditor({ trainer }: { trainer: Trainer }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="mt-4 text-sm text-blue-600 hover:text-blue-800"
+        className="mt-4 flex min-h-[44px] items-center text-sm text-blue-600 hover:text-blue-800"
       >
         Rediger
       </button>
