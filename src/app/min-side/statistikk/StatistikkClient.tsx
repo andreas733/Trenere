@@ -248,7 +248,9 @@ export default function StatistikkClient({
 }) {
   const [from, setFrom] = useState(initialFrom);
   const [to, setTo] = useState(initialTo);
-  const [selectedPartyIds, setSelectedPartyIds] = useState<string[]>([]);
+  const aParty = parties.find((p) => p.slug === "a");
+  const defaultPartyIds = aParty ? [aParty.id] : parties[0] ? [parties[0].id] : [];
+  const [selectedPartyIds, setSelectedPartyIds] = useState<string[]>(defaultPartyIds);
   const [data, setData] = useState<StatistikkData | null>(null);
   const [dataByParty, setDataByParty] = useState<Record<string, StatistikkData>>({});
   const [error, setError] = useState<string | null>(null);
@@ -263,10 +265,6 @@ export default function StatistikkClient({
       if (prev.includes(partyId)) return prev.filter((id) => id !== partyId);
       return [...prev, partyId];
     });
-  }
-
-  function selectAllParties() {
-    setSelectedPartyIds([]);
   }
 
   function isPartySelected(partyId: string) {
@@ -320,17 +318,6 @@ export default function StatistikkClient({
           <div>
             <p className="mb-1 text-sm font-medium text-slate-700">Parti</p>
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={selectAllParties}
-                className={`min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium ${
-                  selectedPartyIds.length === 0
-                    ? "bg-ssk-blue text-white"
-                    : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-                }`}
-              >
-                Alle
-              </button>
               {parties.map((p) => (
                 <button
                   key={p.id}
