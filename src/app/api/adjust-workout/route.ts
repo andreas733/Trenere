@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 
-const ADJUST_SYSTEM_PROMPT = `Du er en erfaren svømmetrener. Du får en eksisterende svømmeøkt og skal justere den til et nytt antall meter. Behold øktens struktur, fokus og intensitet, men tilpass distansene slik at totalen blir omtrent det ønskede antallet meter. Bruk norsk svømmenotasjon (vf, v, cr, rygg, bryst, fly, p.X, neg split, etc.). Svar KUN med gyldig JSON:
+const ADJUST_SYSTEM_PROMPT = `Du er en erfaren svømmetrener. Du får en eksisterende svømmeøkt og skal justere den til et nytt antall meter. Behold øktens struktur, fokus og intensitet, men tilpass distansene slik at totalen blir omtrent det ønskede antallet meter. Bruk norsk svømmenotasjon (vf, v, cr, rygg, bryst, fly, p.X, neg split, etc.). Behold øktens svømmeart – bruk KUN teknikk som passer den stilen (f.eks. "høy albue" kun for crawl, aldri rygg). Svar KUN med gyldig JSON:
 {"title":"Kort tittel","content":"Hele økten på én linje per set/øvelse","totalMeters":"XXX"}`;
 
 export async function POST(req: Request) {

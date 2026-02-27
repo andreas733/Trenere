@@ -36,6 +36,16 @@ const SWIMMING_SYSTEM_PROMPT = `Du er en erfaren svømmetrener som lager trening
 - høy: intervalltrening, neg split, testing
 - topp: racing, 0-start, maks intensitet
 
+## Teknikk og driller – STILSPESIFIKK (bruk kun riktig teknologi for valgt svømmeart)
+- Crawl: høy albue (EVF), rotasjon, 6-beats spark, pust timing
+- Rygg: lav albue, roterende skulder, kontinuerlig spark, rett håndledd. IKKE bruk "høy albue" for rygg – det gjelder kun crawl
+- Bryst: timing glid/trekk/spark/pust, delfinføtter under vann, utstrøk
+- Butterfly: delfinbevegelse fra hoften, symmetrisk armtrekk, timing
+
+## Viktig: Unngå logiske feil
+- Teknikkbeskrivelser MÅ matche valgt svømmeart. F.eks: "høy albue" gjelder kun crawl, aldri rygg
+- Dobbeltsjekk at alle driller og fokusområder er teknisk korrekte for den svømmearten økten handler om
+
 ## Svarformat
 Returner KUN denne JSON-strukturen, ingen annen tekst:
 {"title":"Kort tittel (f.eks. Rygg teknikk + crawl kondisjon)","content":"Hele økten på én linje per set/øvelse. Bruk norsk svømmenotasjon.","totalMeters":"XXX" eller "XXX/YYY" for ulike grupper}`;
@@ -92,10 +102,19 @@ export async function POST(req: Request) {
 
     const anthropic = new Anthropic({ apiKey });
 
+    const strokeGuidance: Record<string, string> = {
+      rygg: "Bruk kun rygg-teknikk (lav albue, rotering, spark). ALDRI crawl-teknikk som høy albue.",
+      crawl: "Bruk crawl-teknikk (høy albue, rotasjon, 6-beats).",
+      bryst: "Bruk bryst-teknikk (timing, delfinføtter).",
+      butterfly: "Bruk butterfly-teknikk (delfin fra hoften, symmetri).",
+      medley: "Bruk riktig teknologi for hver svømmeart i medley (cr/rygg/bryst/fly).",
+    };
+    const guidance = strokeGuidance[String(stroke).toLowerCase()] ?? "Bruk riktig teknologi for valgt svømmeart.";
+
     const focusPart = focusArea && String(focusArea).trim()
       ? ` Fokuser spesielt på: ${String(focusArea).trim()}. Tittelen på økten MÅ reflektere dette fokusområdet.`
       : "";
-    const userPrompt = `Lag en ${intensity} ${stroke}-økt på ca ${totalMeters} meter.${focusPart} Bruk norsk svømmenotasjon som beskrevet. Svar KUN med JSON.`;
+    const userPrompt = `Lag en ${intensity} ${stroke}-økt på ca ${totalMeters} meter. ${guidance}${focusPart} Bruk norsk svømmenotasjon som beskrevet. Svar KUN med JSON.`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
