@@ -15,7 +15,8 @@ export type StatistikkData = {
 
 export async function getStatistikk(
   dateFrom: string,
-  dateTo: string
+  dateTo: string,
+  partyIds?: string[]
 ): Promise<{ data: StatistikkData | null; error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -32,7 +33,7 @@ export async function getStatistikk(
     return { data: null, error: "Kun admin har tilgang til statistikk" };
   }
 
-  const { data: rows, error } = await supabase
+  let query = supabase
     .from("planned_sessions")
     .select(`
       id,
@@ -50,6 +51,12 @@ export async function getStatistikk(
     .gte("planned_date", dateFrom)
     .lte("planned_date", dateTo)
     .order("planned_date");
+
+  if (partyIds && partyIds.length > 0) {
+    query = query.in("party_id", partyIds);
+  }
+
+  const { data: rows, error } = await query;
 
   if (error) return { data: null, error: error.message };
   if (!rows || rows.length === 0) {
