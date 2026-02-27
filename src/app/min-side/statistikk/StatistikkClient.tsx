@@ -20,6 +20,10 @@ import {
 } from "recharts";
 import { getStatistikk, type StatistikkData } from "@/lib/actions/statistikk";
 import { parseLocalDate } from "@/lib/utils/date-local";
+import {
+  getTrinnForParty,
+  getWeeklyReferenceLineData,
+} from "@/lib/nsf-utviklingstrapp";
 
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6"];
 
@@ -235,10 +239,12 @@ export default function StatistikkClient({
   initialFrom,
   initialTo,
   parties,
+  nsfUtviklingstrappEnabled = false,
 }: {
   initialFrom: string;
   initialTo: string;
   parties: Party[];
+  nsfUtviklingstrappEnabled?: boolean;
 }) {
   const [from, setFrom] = useState(initialFrom);
   const [to, setTo] = useState(initialTo);
@@ -397,11 +403,30 @@ export default function StatistikkClient({
             <>
               <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow">
                 <h2 className="mb-4 text-lg font-semibold text-slate-800">Akkumulerte meter</h2>
+                {nsfUtviklingstrappEnabled &&
+                  selectedPartyIds.length === 1 &&
+                  (() => {
+                    const party = parties.find((p) => p.id === selectedPartyIds[0]);
+                    return party ? (
+                      <p className="mb-3 text-sm text-slate-600">
+                        Stiplet linje viser NSF anbefalt treningsmengde for {party.name} basert på
+                        utviklingstrappen.
+                      </p>
+                    ) : null;
+                  })()}
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={data.metersByWeek.reduce<{ week: string; label: string; meters: number; accumulated: number }[]>(
-                        (acc, w) => {
+                      data={(() => {
+                        const chartData = data.metersByWeek.reduce<
+                          {
+                            week: string;
+                            label: string;
+                            meters: number;
+                            accumulated: number;
+                            anbefaltAccumulated?: number;
+                          }[]
+                        >((acc, w) => {
                           const prev = acc.length > 0 ? acc[acc.length - 1].accumulated : 0;
                           acc.push({
                             week: w.week,
@@ -410,9 +435,33 @@ export default function StatistikkClient({
                             accumulated: prev + w.meters,
                           });
                           return acc;
-                        },
-                        []
-                      )}
+                        }, []);
+
+                        if (
+                          nsfUtviklingstrappEnabled &&
+                          selectedPartyIds.length === 1
+                        ) {
+                          const party = parties.find((p) => p.id === selectedPartyIds[0]);
+                          if (party) {
+                            const trinn = getTrinnForParty(party.slug);
+                            if (trinn != null) {
+                              const weeks = data.metersByWeek.map((x) => x.week);
+                              const refData = getWeeklyReferenceLineData(
+                                weeks,
+                                trinn,
+                                from,
+                                to
+                              );
+                              refData.forEach((r, i) => {
+                                if (chartData[i]) {
+                                  chartData[i].anbefaltAccumulated = r.anbefaltAccumulated;
+                                }
+                              });
+                            }
+                          }
+                        }
+                        return chartData;
+                      })()}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis dataKey="label" tick={{ fontSize: 12 }} />
@@ -424,6 +473,7 @@ export default function StatistikkClient({
                         ]}
                         labelFormatter={(label) => `Uke: ${label}`}
                       />
+                      <Legend />
                       <Area
                         type="monotone"
                         dataKey="accumulated"
@@ -432,6 +482,18 @@ export default function StatistikkClient({
                         fillOpacity={0.3}
                         name="Akkumulert"
                       />
+                      {nsfUtviklingstrappEnabled &&
+                        selectedPartyIds.length === 1 && (
+                          <Line
+                            type="monotone"
+                            dataKey="anbefaltAccumulated"
+                            stroke="#94a3b8"
+                            strokeWidth={2}
+                            strokeDasharray="8 4"
+                            name="NSF anbefalt"
+                            dot={false}
+                          />
+                        )}
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import StatistikkClient from "./StatistikkClient";
 import { formatLocalDate } from "@/lib/utils/date-local";
+import { getAppSetting } from "@/lib/actions/app-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -14,11 +15,16 @@ function getDefaultPeriod() {
 export default async function StatistikkPage() {
   const { from, to } = getDefaultPeriod();
   const supabase = await createClient();
-  const { data: parties } = await supabase
-    .from("parties")
-    .select("id, name, slug")
-    .eq("has_planner", true)
-    .order("sequence");
+  const [partiesRes, nsfEnabled] = await Promise.all([
+    supabase
+      .from("parties")
+      .select("id, name, slug")
+      .eq("has_planner", true)
+      .order("sequence"),
+    getAppSetting("nsf_utviklingstrapp_enabled"),
+  ]);
+  const parties = partiesRes.data ?? [];
+  const nsfUtviklingstrappEnabled = nsfEnabled === true;
 
   return (
     <div>
@@ -26,7 +32,8 @@ export default async function StatistikkPage() {
       <StatistikkClient
         initialFrom={from}
         initialTo={to}
-        parties={parties ?? []}
+        parties={parties}
+        nsfUtviklingstrappEnabled={nsfUtviklingstrappEnabled}
       />
     </div>
   );
