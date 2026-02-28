@@ -78,7 +78,7 @@ export async function syncSwimmersFromSpond(): Promise<SpondSyncResult> {
       const { data: deletedRows, error: deleteError } = await supabase
         .from("swimmers")
         .delete()
-        .in("spond_uid", [...excludedMemberIds])
+        .in("spond_uid", Array.from(excludedMemberIds))
         .select("id");
 
       if (deleteError) {
