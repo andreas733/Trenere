@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
@@ -7,6 +8,12 @@ export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Ikke innlogget" }, { status: 401 });
+  }
+
   if (!(await canAccessPlanner())) {
     return NextResponse.json(
       { error: "Du har ikke tilgang til planleggeren. Kontakt administrator for å få rettigheter." },
