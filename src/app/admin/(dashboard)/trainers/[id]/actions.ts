@@ -22,6 +22,23 @@ export async function updateTrainer(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Ikke innlogget" };
 
+  let canAccessWorkoutLibrary = data.can_access_workout_library;
+  let canAccessPlanner = data.can_access_planner;
+  let canAccessStatistics = data.can_access_statistics;
+
+  if (data.party_ids.length > 0) {
+    const { data: parties } = await supabase
+      .from("parties")
+      .select("has_planner")
+      .in("id", data.party_ids);
+    const hasCompetitionParty = (parties ?? []).some((p) => p.has_planner);
+    if (hasCompetitionParty) {
+      canAccessWorkoutLibrary = true;
+      canAccessPlanner = true;
+      canAccessStatistics = true;
+    }
+  }
+
   const { error } = await supabase
     .from("trainers")
     .update({
@@ -30,9 +47,9 @@ export async function updateTrainer(
       contract_from_date: data.contract_from_date || null,
       contract_to_date: data.contract_fast ? null : (data.contract_to_date || null),
       contract_fast: data.contract_fast,
-      can_access_workout_library: data.can_access_workout_library,
-      can_access_planner: data.can_access_planner,
-      can_access_statistics: data.can_access_statistics,
+      can_access_workout_library: canAccessWorkoutLibrary,
+      can_access_planner: canAccessPlanner,
+      can_access_statistics: canAccessStatistics,
     })
     .eq("id", id);
 
