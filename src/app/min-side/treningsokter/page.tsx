@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { canAccessWorkoutLibrary } from "@/lib/permissions";
 import TreningsokterClient from "./TreningsokterClient";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,7 @@ export default async function TreningsokterMinSidePage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect("/");
+  if (!(await canAccessWorkoutLibrary())) redirect("/min-side");
 
   const { data: sessions } = await supabase
     .from("training_sessions")

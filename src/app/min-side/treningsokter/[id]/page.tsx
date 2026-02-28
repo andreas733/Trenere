@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import SessionForm from "@/app/admin/(dashboard)/treningsokter/SessionForm";
+import { canAccessWorkoutLibrary } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,11 @@ export default async function RedigerTreningsoktMinSidePage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) redirect("/");
+  if (!(await canAccessWorkoutLibrary())) redirect("/min-side");
+
   const { data: session } = await supabase
     .from("training_sessions")
     .select("id, title, content, total_meters, focus_stroke, intensity")

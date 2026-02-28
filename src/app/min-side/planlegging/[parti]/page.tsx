@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
+import { canAccessPlanner } from "@/lib/permissions";
 import PlanleggingClient from "../PlanleggingClient";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,7 @@ export default async function PlanleggingPartiPage({
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect("/");
+  if (!(await canAccessPlanner())) redirect("/min-side");
 
   const { data: party } = await supabase
     .from("parties")

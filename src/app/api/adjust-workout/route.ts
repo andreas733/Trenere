@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { canAccessWorkoutLibrary } from "@/lib/permissions";
 
 const ADJUST_SYSTEM_PROMPT = `Du er en erfaren svømmetrener. Du får en eksisterende svømmeøkt og skal justere den til et nytt antall meter. Behold øktens struktur, fokus og intensitet, men tilpass distansene slik at totalen blir omtrent det ønskede antallet meter. Bruk norsk svømmenotasjon (vf, v, cr, rygg, bryst, fly, p.X, neg split, etc.). Behold øktens svømmeart – bruk KUN teknikk som passer den stilen (f.eks. "høy albue" kun for crawl, aldri rygg). Svar KUN med gyldig JSON:
 {"title":"Kort tittel","content":"Hele økten på én linje per set/øvelse","totalMeters":"XXX"}`;
@@ -13,26 +14,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Ikke innlogget" }, { status: 401 });
     }
 
-    const { data: trainer } = await supabase
-      .from("trainers")
-      .select("id")
-      .eq("auth_user_id", user.id)
-      .single();
-
-    const { data: adminRow } = await supabase
-      .from("admin_users")
-      .select("id")
-      .eq("auth_user_id", user.id)
-      .single();
-
-    const identities = user.identities ?? [];
-    const isAzure = identities.some((i) => i.provider === "azure");
-    const isAdmin = isAzure || !!adminRow;
-    const isTrainer = !!trainer;
-
-    if (!isAdmin && !isTrainer) {
+    if (!(await canAccessWorkoutLibrary())) {
       return NextResponse.json(
-        { error: "Kun trenere og admin kan justere økter" },
+        { error: "Du har ikke tilgang til treningsøktbanken. Kontakt administrator for å få rettigheter." },
         { status: 403 }
       );
     }

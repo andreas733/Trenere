@@ -1,41 +1,17 @@
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-
-async function ensureTrainerOrAdmin(): Promise<
-  { trainerId: string } | { isAdmin: true } | { error: string }
-> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Ikke innlogget" };
-
-  const { data: trainer } = await supabase
-    .from("trainers")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .single();
-
-  if (trainer) return { trainerId: trainer.id };
-
-  const { data: adminRow } = await supabase
-    .from("admin_users")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .single();
-
-  if (adminRow) return { isAdmin: true };
-
-  return { error: "Kun trenere og admin kan sende økter på e-post" };
-}
+import { canAccessPlanner } from "@/lib/permissions";
 
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await ensureTrainerOrAdmin();
-  if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: 401 });
+  if (!(await canAccessPlanner())) {
+    return NextResponse.json(
+      { error: "Du har ikke tilgang til planleggeren. Kontakt administrator for å få rettigheter." },
+      { status: 403 }
+    );
   }
 
   const { id } = await params;

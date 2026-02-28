@@ -6,13 +6,24 @@ import Image from "next/image";
 import LogoutButton from "./LogoutButton";
 
 const NAV_LINKS = [
-  { href: "/min-side/treningsokter", label: "Treningsøkter" },
-  { href: "/min-side/planlegging", label: "Planlegging" },
-  { href: "/min-side/statistikk", label: "Statistikk" },
-  { href: "/min-side/profil", label: "Min side" },
+  { href: "/min-side/treningsokter", label: "Treningsøkter", permission: "workoutLibrary" as const },
+  { href: "/min-side/planlegging", label: "Planlegging", permission: "planner" as const },
+  { href: "/min-side/statistikk", label: "Statistikk", permission: null },
+  { href: "/min-side/profil", label: "Min side", permission: null },
 ];
 
-export default function MinSideNav() {
+export default function MinSideNav({
+  canAccessWorkoutLibrary = false,
+  canAccessPlanner = false,
+}: {
+  canAccessWorkoutLibrary?: boolean;
+  canAccessPlanner?: boolean;
+}) {
+  const navLinks = NAV_LINKS.filter((link) => {
+    if (link.permission === "workoutLibrary") return canAccessWorkoutLibrary;
+    if (link.permission === "planner") return canAccessPlanner;
+    return true;
+  });
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -33,7 +44,7 @@ export default function MinSideNav() {
 
         {/* Desktop nav – hidden on mobile */}
         <div className="hidden items-center gap-4 md:flex">
-          {NAV_LINKS.map(({ href, label }) => (
+          {navLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
@@ -69,7 +80,7 @@ export default function MinSideNav() {
       {menuOpen && (
         <div className="border-t border-ssk-800 bg-ssk-700 md:hidden">
           <div className="mx-auto max-w-4xl px-4 py-4 space-y-1">
-            {NAV_LINKS.map(({ href, label }) => (
+            {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}

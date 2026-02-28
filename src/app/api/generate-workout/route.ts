@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { canAccessWorkoutLibrary } from "@/lib/permissions";
 
 const SWIMMING_SYSTEM_PROMPT = `Du er en erfaren svømmetrener som lager treningsprogram for svømmeklubber. Du svarer KUN med gyldig JSON uten annen tekst.
 
@@ -58,26 +59,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Ikke innlogget" }, { status: 401 });
     }
 
-    const { data: trainer } = await supabase
-      .from("trainers")
-      .select("id")
-      .eq("auth_user_id", user.id)
-      .single();
-
-    const { data: adminRow } = await supabase
-      .from("admin_users")
-      .select("id")
-      .eq("auth_user_id", user.id)
-      .single();
-
-    const identities = user.identities ?? [];
-    const isAzure = identities.some((i) => i.provider === "azure");
-    const isAdmin = isAzure || !!adminRow;
-    const isTrainer = !!trainer;
-
-    if (!isAdmin && !isTrainer) {
+    if (!(await canAccessWorkoutLibrary())) {
       return NextResponse.json(
-        { error: "Kun trenere og admin kan generere økter" },
+        { error: "Du har ikke tilgang til treningsøktbanken. Kontakt administrator for å få rettigheter." },
         { status: 403 }
       );
     }

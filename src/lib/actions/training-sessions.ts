@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { canAccessWorkoutLibrary, canAccessPlanner } from "@/lib/permissions";
 
 async function ensureTrainerOrAdmin(): Promise<
   { trainerId: string } | { isAdmin: true } | { error: string }
@@ -39,6 +40,9 @@ export async function createTrainingSession(data: {
 }): Promise<{ error?: string; id?: string }> {
   const auth = await ensureTrainerOrAdmin();
   if ("error" in auth) return { error: auth.error };
+  if (!(await canAccessWorkoutLibrary())) {
+    return { error: "Du har ikke tilgang til treningsøktbanken. Kontakt administrator for å få rettigheter." };
+  }
 
   const admin = createAdminClient();
   const trainerId = "trainerId" in auth ? auth.trainerId : null;
@@ -75,6 +79,9 @@ export async function updateTrainingSession(
 ): Promise<{ error?: string }> {
   const auth = await ensureTrainerOrAdmin();
   if ("error" in auth) return { error: auth.error };
+  if (!(await canAccessWorkoutLibrary())) {
+    return { error: "Du har ikke tilgang til treningsøktbanken. Kontakt administrator for å få rettigheter." };
+  }
 
   const admin = createAdminClient();
   const { error } = await admin
@@ -98,6 +105,9 @@ export async function updateTrainingSession(
 export async function deleteTrainingSession(id: string): Promise<{ error?: string }> {
   const auth = await ensureTrainerOrAdmin();
   if ("error" in auth) return { error: auth.error };
+  if (!(await canAccessWorkoutLibrary())) {
+    return { error: "Du har ikke tilgang til treningsøktbanken. Kontakt administrator for å få rettigheter." };
+  }
 
   const admin = createAdminClient();
   const { error } = await admin.from("training_sessions").delete().eq("id", id);
@@ -116,6 +126,9 @@ export async function planSession(
 ): Promise<{ error?: string }> {
   const auth = await ensureTrainerOrAdmin();
   if ("error" in auth) return { error: auth.error };
+  if (!(await canAccessPlanner())) {
+    return { error: "Du har ikke tilgang til planleggeren. Kontakt administrator for å få rettigheter." };
+  }
 
   const admin = createAdminClient();
   const trainerId = "trainerId" in auth ? auth.trainerId : null;
@@ -136,6 +149,9 @@ export async function planSession(
 export async function unplanSession(id: string): Promise<{ error?: string }> {
   const auth = await ensureTrainerOrAdmin();
   if ("error" in auth) return { error: auth.error };
+  if (!(await canAccessPlanner())) {
+    return { error: "Du har ikke tilgang til planleggeren. Kontakt administrator for å få rettigheter." };
+  }
 
   const admin = createAdminClient();
   const { error } = await admin.from("planned_sessions").delete().eq("id", id);
@@ -157,6 +173,9 @@ export async function planSessionWithAIContent(data: {
 }): Promise<{ error?: string }> {
   const auth = await ensureTrainerOrAdmin();
   if ("error" in auth) return { error: auth.error };
+  if (!(await canAccessPlanner())) {
+    return { error: "Du har ikke tilgang til planleggeren. Kontakt administrator for å få rettigheter." };
+  }
 
   const admin = createAdminClient();
   const trainerId = "trainerId" in auth ? auth.trainerId : null;
