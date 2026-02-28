@@ -154,6 +154,7 @@ export interface Database {
           slug: string;
           has_planner: boolean;
           sequence: number;
+          spond_subgroup_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -163,6 +164,7 @@ export interface Database {
           slug: string;
           has_planner?: boolean;
           sequence?: number;
+          spond_subgroup_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -204,6 +206,31 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["training_sessions"]["Insert"]>;
       };
+      swimmers: {
+        Row: {
+          id: string;
+          spond_uid: string;
+          name: string;
+          email: string | null;
+          phone: string | null;
+          party_id: string;
+          synced_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          spond_uid: string;
+          name: string;
+          email?: string | null;
+          phone?: string | null;
+          party_id: string;
+          synced_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["swimmers"]["Insert"]>;
+      };
       planned_sessions: {
         Row: {
           id: string;
@@ -243,5 +270,6 @@ export type TrainerCertification = Database["public"]["Tables"]["trainer_certifi
 export type TrainerParty = Database["public"]["Tables"]["trainer_parties"]["Row"];
 export type WageLevel = Database["public"]["Tables"]["wage_levels"]["Row"];
 export type Party = Database["public"]["Tables"]["parties"]["Row"];
+export type Swimmer = Database["public"]["Tables"]["swimmers"]["Row"];
 export type TrainingSession = Database["public"]["Tables"]["training_sessions"]["Row"];
 export type PlannedSession = Database["public"]["Tables"]["planned_sessions"]["Row"];

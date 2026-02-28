@@ -14,6 +14,7 @@ Registreringsløsning for nye trenere og frivillige i Skien Svømmeklubb. Integr
 - **Kontraktstyper** – Vanlig kontrakt (fra–til) eller fast kontrakt (kun fra-dato)
 - **Tripletex-sync** – Overføring av trenere som ansatte
 - **Anvil-kontrakter** – Sending av ansettelseskontrakter til e-signering
+- **Spond-sync** – Henting av svømmeres navn, e-post og telefon fra Spond (organisert etter parti)
 
 ## Teknisk stack
 
@@ -49,6 +50,10 @@ cp .env.example .env.local
 | `ANVIL_API_KEY` | Anvil API-nøkkel |
 | `ANVIL_PDF_TEMPLATE_EID` | EID for PDF-malen i Anvil |
 | `ANVIL_USE_TEST` | `true` for test (signaturer ikke juridisk bindende), `false` for produksjon |
+| `SPOND_USERNAME` | Spond e-post for API-tilgang |
+| `SPOND_PASSWORD` | Spond passord |
+| `SPOND_GROUP_ID` | Valgfritt: Spond gruppe-ID (ellers brukes første gruppe) |
+| `CRON_SECRET` | Hemmelighet for Vercel cron (sikrer daglig Spond-sync) |
 
 ### 3. Supabase
 
@@ -109,6 +114,17 @@ For å sende ansettelseskontrakter til e-signering via Anvil:
 - Sett `ANVIL_CLUB_EMAIL` til din egen e-post for å motta klubbens signaturlenke direkte
 - Treneren mottar e-post til sin registrerte e-post – bruk en e-post du har tilgang til for testing
 
+### 8. Spond (synkronisering av svømmere)
+
+For å hente svømmeres navn, e-post og telefon fra Spond:
+
+1. Bruk en Spond-konto som har tilgang til gruppen med svømmere
+2. Sett miljøvariabler: `SPOND_USERNAME`, `SPOND_PASSWORD`
+3. Kjør migrasjon `015_swimmers_spond.sql` for å opprette `swimmers`-tabellen
+4. Sett `spond_subgroup_id` på partiene A, A2, B og C til tilsvarende Spond subgroup-IDer. Svømmeskolen hentes ikke inn. Dette kan gjøres i Supabase SQL Editor etter å ha hentet subgroup-IDene fra Spond (f.eks. via API eller nettleserens nettverksfane)
+5. Klikk «Synkroniser fra Spond» på admin-dashboardet for manuell sync
+6. For daglig automatisk sync: sett `CRON_SECRET` i Vercel. Cron kjører kl. 06:00 norsk tid (0 5 * * * UTC)
+
 ## Kjør lokalt
 
 ```bash
@@ -158,9 +174,12 @@ src/
 │   │       ├── TrainerTable.tsx
 │   │       ├── wage-levels/  # Administrasjon av lønnstrinn
 │   │       └── trainers/[id]/ # Rediger trener
-│   └── api/trainers/         # Tripletex-sync og Anvil-kontrakt
+│   └── api/
+│       ├── trainers/         # Tripletex-sync og Anvil-kontrakt
+│       └── spond/sync/       # Spond-sync for svømmere
 ├── lib/
 │   ├── supabase/             # Supabase-klienter
+│   ├── spond/                # Spond API-klient og sync
 │   └── utils/                # Hjelpefunksjoner (birthdate.ts: parser fødselsdato fra norsk fnr/D-nummer)
 └── types/                    # TypeScript-typer
 ```
@@ -170,5 +189,7 @@ src/
 - `trainers` – Trenere med kontraktdata (`contract_fast` for fast kontrakt uten sluttdato)
 - `wage_levels` – Lønnstrinn
 - `admin_users` – Brukere med admin-tilgang
+- `swimmers` – Svømmere hentet fra Spond (navn, e-post, telefon, parti)
+- `parties` – Partier med `spond_subgroup_id` for mapping til Spond subgroups
 
-Migrasjoner: `001_initial_schema`, `002_seed_wage_levels`, `003_contract_fast`
+Migrasjoner: `001_initial_schema`, `002_seed_wage_levels`, `003_contract_fast`, … `015_swimmers_spond`
