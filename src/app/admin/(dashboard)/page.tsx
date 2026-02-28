@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { normalizeTrainers } from "@/lib/utils/trainers";
-import SpondSyncButton from "./SpondSyncButton";
 import TrainerTable from "./TrainerTable";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +35,6 @@ export default async function AdminPage() {
   return (
     <div>
       <h1 className="mb-6 text-2xl font-bold text-slate-800">Trenere</h1>
-      <SpondSyncButton />
       <TrainerTable trainers={normalizedTrainers} />
     </div>
   );

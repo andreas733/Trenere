@@ -38,6 +38,12 @@ export default function AdminNav() {
             Trenere
           </Link>
           <Link
+            href="/admin/svommere"
+            className="text-white/90 hover:text-white"
+          >
+            Svømmere
+          </Link>
+          <Link
             href="/admin/kompetanse"
             className="text-white/90 hover:text-white"
           >
