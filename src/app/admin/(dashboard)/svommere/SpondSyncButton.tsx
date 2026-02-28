@@ -10,6 +10,7 @@ export default function SpondSyncButton() {
     created: number;
     updated: number;
     skipped: number;
+    deleted: number;
     errors?: string[];
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export default function SpondSyncButton() {
         created: data.created ?? 0,
         updated: data.updated ?? 0,
         skipped: data.skipped ?? 0,
+        deleted: data.deleted ?? 0,
         errors: data.errors,
       });
       router.refresh();
@@ -61,6 +63,7 @@ export default function SpondSyncButton() {
       {result && !error && (
         <p className="mt-3 text-sm text-slate-600">
           Opprettet: {result.created}, oppdatert: {result.updated}, hoppet over: {result.skipped}
+          {result.deleted > 0 && `, slettet: ${result.deleted}`}
           {result.errors && result.errors.length > 0 && (
             <span className="mt-1 block text-amber-600">
               Noen feil: {result.errors.slice(0, 3).join("; ")}

@@ -10,6 +10,7 @@ export interface SpondSyncResult {
   created: number;
   updated: number;
   skipped: number;
+  deleted: number;
   errors: string[];
 }
 
@@ -26,7 +27,13 @@ export async function syncSwimmersFromSpond(): Promise<SpondSyncResult> {
     throw new Error("SPOND_USERNAME and SPOND_PASSWORD must be set");
   }
 
-  const result: SpondSyncResult = { created: 0, updated: 0, skipped: 0, errors: [] };
+  const result: SpondSyncResult = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    deleted: 0,
+    errors: [],
+  };
   const supabase = createAdminClient();
 
   const token = await spondLogin(username, password);
@@ -59,9 +66,37 @@ export async function syncSwimmersFromSpond(): Promise<SpondSyncResult> {
     }
   }
 
+  // Medlemmer i ekskluderingsgruppen (f.eks. Styret) tas ikke med som svømmere
+  const excludeGroupId = process.env.SPOND_EXCLUDE_GROUP_ID;
+  const excludedMemberIds = new Set<string>();
+  if (excludeGroupId) {
+    const excludeGroup = groups.find((g) => g.id === excludeGroupId);
+    for (const m of excludeGroup?.members ?? []) {
+      excludedMemberIds.add(m.id);
+    }
+    if (excludedMemberIds.size > 0) {
+      const { data: deletedRows, error: deleteError } = await supabase
+        .from("swimmers")
+        .delete()
+        .in("spond_uid", [...excludedMemberIds])
+        .select("id");
+
+      if (deleteError) {
+        result.errors.push(`Sletting av ekskluderte: ${deleteError.message}`);
+      } else {
+        result.deleted = deletedRows?.length ?? 0;
+      }
+    }
+  }
+
   const now = new Date().toISOString();
 
   for (const member of targetGroup.members ?? []) {
+    if (excludedMemberIds.has(member.id)) {
+      result.skipped += 1;
+      continue;
+    }
+
     const partyId = getPartyIdForMember(member, subgroupToPartyId);
 
     if (!partyId) {

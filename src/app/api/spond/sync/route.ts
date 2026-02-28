@@ -47,6 +47,7 @@ export async function POST(req: Request) {
       created: result.created,
       updated: result.updated,
       skipped: result.skipped,
+      deleted: result.deleted,
       errors: result.errors.length > 0 ? result.errors : undefined,
     });
   } catch (e) {
