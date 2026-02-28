@@ -8,20 +8,23 @@ import LogoutButton from "./LogoutButton";
 const NAV_LINKS = [
   { href: "/min-side/treningsokter", label: "Treningsøkter", permission: "workoutLibrary" as const },
   { href: "/min-side/planlegging", label: "Planlegging", permission: "planner" as const },
-  { href: "/min-side/statistikk", label: "Statistikk", permission: null },
+  { href: "/min-side/statistikk", label: "Statistikk", permission: "statistics" as const },
   { href: "/min-side/profil", label: "Min side", permission: null },
 ];
 
 export default function MinSideNav({
   canAccessWorkoutLibrary = false,
   canAccessPlanner = false,
+  canAccessStatistics = false,
 }: {
   canAccessWorkoutLibrary?: boolean;
   canAccessPlanner?: boolean;
+  canAccessStatistics?: boolean;
 }) {
   const navLinks = NAV_LINKS.filter((link) => {
     if (link.permission === "workoutLibrary") return canAccessWorkoutLibrary;
     if (link.permission === "planner") return canAccessPlanner;
+    if (link.permission === "statistics") return canAccessStatistics;
     return true;
   });
   const [menuOpen, setMenuOpen] = useState(false);

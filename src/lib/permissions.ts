@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 export type TrainerPermissions = {
   canAccessWorkoutLibrary: boolean;
   canAccessPlanner: boolean;
+  canAccessStatistics: boolean;
 };
 
 /**
@@ -18,7 +19,7 @@ export async function getTrainerPermissions(
   const supabase = await createClient();
   const { data: trainer } = await supabase
     .from("trainers")
-    .select("can_access_workout_library, can_access_planner")
+    .select("can_access_workout_library, can_access_planner, can_access_statistics")
     .eq("auth_user_id", userId)
     .single();
 
@@ -27,6 +28,7 @@ export async function getTrainerPermissions(
   return {
     canAccessWorkoutLibrary: trainer.can_access_workout_library ?? false,
     canAccessPlanner: trainer.can_access_planner ?? false,
+    canAccessStatistics: trainer.can_access_statistics ?? false,
   };
 }
 
@@ -74,4 +76,27 @@ export async function canAccessPlanner(): Promise<boolean> {
 
   const permissions = await getTrainerPermissions(user.id);
   return permissions?.canAccessPlanner ?? false;
+}
+
+/**
+ * Sjekker om innlogget bruker har tilgang til statistikk-modulen.
+ * Admin (Azure eller admin_users) får alltid tilgang.
+ * Trener må ha can_access_statistics = true.
+ */
+export async function canAccessStatistics(): Promise<boolean> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const identities = user.identities ?? [];
+  const isAzure = identities.some((i) => i.provider === "azure");
+  const { data: adminRow } = await supabase
+    .from("admin_users")
+    .select("id")
+    .eq("auth_user_id", user.id)
+    .single();
+  if (isAzure || adminRow) return true;
+
+  const permissions = await getTrainerPermissions(user.id);
+  return permissions?.canAccessStatistics ?? false;
 }

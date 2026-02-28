@@ -34,6 +34,7 @@ export interface Database {
           contract_sent_at: string | null;
           can_access_workout_library: boolean;
           can_access_planner: boolean;
+          can_access_statistics: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -61,6 +62,7 @@ export interface Database {
           contract_sent_at?: string | null;
           can_access_workout_library?: boolean;
           can_access_planner?: boolean;
+          can_access_statistics?: boolean;
           created_at?: string;
           updated_at?: string;
         };

@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import StatistikkClient from "./StatistikkClient";
 import { formatLocalDate } from "@/lib/utils/date-local";
 import { getAppSetting } from "@/lib/actions/app-settings";
+import { canAccessStatistics } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +15,13 @@ function getDefaultPeriod() {
 }
 
 export default async function StatistikkPage() {
-  const { from, to } = getDefaultPeriod();
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) redirect("/");
+  if (!(await canAccessStatistics())) redirect("/min-side");
+
+  const { from, to } = getDefaultPeriod();
   const [partiesRes, nsfEnabled] = await Promise.all([
     supabase
       .from("parties")

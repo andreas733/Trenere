@@ -63,6 +63,7 @@ export default function TrainerEditForm({
     party_ids: selectedPartyIds,
     can_access_workout_library: trainer.can_access_workout_library ?? false,
     can_access_planner: trainer.can_access_planner ?? false,
+    can_access_statistics: trainer.can_access_statistics ?? false,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -79,6 +80,7 @@ export default function TrainerEditForm({
       party_ids: formData.party_ids,
       can_access_workout_library: formData.can_access_workout_library,
       can_access_planner: formData.can_access_planner,
+      can_access_statistics: formData.can_access_statistics,
     });
     setLoading(false);
     if (result.error) {
@@ -115,7 +117,7 @@ export default function TrainerEditForm({
       <div className="rounded-lg border border-slate-200 bg-white p-6">
         <h2 className="mb-4 font-semibold text-slate-800">Modultilganger</h2>
         <p className="mb-4 text-sm text-slate-600">
-          Gi treneren tilgang til treningsøktbanken og planleggeren. Nye trenere har kun tilgang til Min side før admin gir rettigheter.
+          Gi treneren tilgang til treningsøktbanken, planleggeren og statistikk. Nye trenere har kun tilgang til Min side før admin gir rettigheter.
         </p>
         <div className="mb-6 space-y-2">
           <label className="flex cursor-pointer items-center gap-2">
@@ -139,6 +141,17 @@ export default function TrainerEditForm({
               className="rounded border-slate-300"
             />
             <span className="text-sm text-slate-700">Tilgang til planleggeren</span>
+          </label>
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={formData.can_access_statistics}
+              onChange={(e) =>
+                setFormData((s) => ({ ...s, can_access_statistics: e.target.checked }))
+              }
+              className="rounded border-slate-300"
+            />
+            <span className="text-sm text-slate-700">Tilgang til statistikk</span>
           </label>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { canAccessWorkoutLibrary, canAccessPlanner } from "@/lib/permissions";
+import { canAccessWorkoutLibrary, canAccessPlanner, canAccessStatistics } from "@/lib/permissions";
 import MinSideNav from "./MinSideNav";
 
 export default async function MinSideLayout({
@@ -6,9 +6,10 @@ export default async function MinSideLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [canWorkoutLibrary, canPlanner] = await Promise.all([
+  const [canWorkoutLibrary, canPlanner, canStats] = await Promise.all([
     canAccessWorkoutLibrary(),
     canAccessPlanner(),
+    canAccessStatistics(),
   ]);
 
   return (
@@ -16,6 +17,7 @@ export default async function MinSideLayout({
       <MinSideNav
         canAccessWorkoutLibrary={canWorkoutLibrary}
         canAccessPlanner={canPlanner}
+        canAccessStatistics={canStats}
       />
       <main className="p-4 sm:p-6">{children}</main>
     </div>

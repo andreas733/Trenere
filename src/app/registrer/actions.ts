@@ -76,6 +76,7 @@ export async function registerTrainer(data: {
     city: data.city.trim().slice(0, 100),
     can_access_workout_library: false,
     can_access_planner: false,
+    can_access_statistics: false,
   });
 
   if (insertError) {

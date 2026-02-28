@@ -15,6 +15,7 @@ export async function updateTrainer(
     party_ids: string[];
     can_access_workout_library: boolean;
     can_access_planner: boolean;
+    can_access_statistics: boolean;
   }
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
@@ -31,6 +32,7 @@ export async function updateTrainer(
       contract_fast: data.contract_fast,
       can_access_workout_library: data.can_access_workout_library,
       can_access_planner: data.can_access_planner,
+      can_access_statistics: data.can_access_statistics,
     })
     .eq("id", id);
 
