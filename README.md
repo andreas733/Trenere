@@ -53,7 +53,7 @@ cp .env.example .env.local
 | `SPOND_USERNAME` | Spond e-post for API-tilgang |
 | `SPOND_PASSWORD` | Spond passord |
 | `SPOND_GROUP_ID` | Valgfritt: Spond gruppe-ID (ellers brukes første gruppe) |
-| `SPOND_EXCLUDE_GROUP_ID` | Valgfritt: Medlemmer i denne gruppen ekskluderes fra svømmere og slettes ved sync (f.eks. Styret) |
+| `SPOND_EXCLUDE_GROUP_ID` | Valgfritt: Gruppe-ID eller subgroup-ID. Medlemmer ekskluderes fra svømmere og slettes ved sync (f.eks. Styret subgroup) |
 | `CRON_SECRET` | Hemmelighet for Vercel cron (sikrer daglig Spond-sync) |
 
 ### 3. Supabase
@@ -123,7 +123,7 @@ For å hente svømmeres navn, e-post og telefon fra Spond:
 2. Sett miljøvariabler: `SPOND_USERNAME`, `SPOND_PASSWORD`
 3. Kjør migrasjon `015_swimmers_spond.sql` for å opprette `swimmers`-tabellen
 4. Sett `spond_subgroup_id` på partiene A, A2, B og C til tilsvarende Spond subgroup-IDer. Svømmeskolen hentes ikke inn. Dette kan gjøres i Supabase SQL Editor etter å ha hentet subgroup-IDene fra Spond (f.eks. via API eller nettleserens nettverksfane)
-5. Valgfritt: Sett `SPOND_EXCLUDE_GROUP_ID` til gruppen hvis medlemmer skal ekskluderes (f.eks. Styret). Disse importeres ikke og slettes automatisk ved sync hvis de allerede er i databasen.
+5. Valgfritt: Sett `SPOND_EXCLUDE_GROUP_ID` til gruppens eller undergruppens ID (f.eks. Styret subgroup-id). Disse importeres ikke og slettes automatisk ved sync hvis de allerede er i databasen.
 6. Klikk «Synkroniser fra Spond» på admin-dashboardet for manuell sync
 7. For daglig automatisk sync: sett `CRON_SECRET` i Vercel. Cron kjører kl. 06:00 norsk tid (0 5 * * * UTC)
 

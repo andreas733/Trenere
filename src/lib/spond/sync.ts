@@ -66,14 +66,20 @@ export async function syncSwimmersFromSpond(): Promise<SpondSyncResult> {
     }
   }
 
-  // Medlemmer i ekskluderingsgruppen (f.eks. Styret) tas ikke med som svømmere.
+  // Medlemmer i ekskluderingsgruppen/subgruppen (f.eks. Styret) tas ikke med som svømmere.
+  // Støtter både group ID (egen gruppe) og subgroup ID (f.eks. Styret som subgroup).
   // Matcher på e-post/telefon fordi Spond bruker ulik member.id per gruppe for samme person.
   const excludeGroupId = process.env.SPOND_EXCLUDE_GROUP_ID;
   const excludedEmails = new Set<string>();
   const excludedPhones = new Set<string>();
   if (excludeGroupId) {
     const excludeGroup = groups.find((g) => g.id === excludeGroupId);
-    for (const m of excludeGroup?.members ?? []) {
+    const membersToExclude: SpondMember[] = excludeGroup
+      ? (excludeGroup.members ?? [])
+      : Array.from(targetGroup.members ?? []).filter((m) =>
+          (m.subGroups ?? []).includes(excludeGroupId)
+        );
+    for (const m of membersToExclude) {
       const email = m.email?.trim().toLowerCase();
       if (email) excludedEmails.add(email);
       const phone = m.phoneNumber?.trim().replace(/\s/g, "");
