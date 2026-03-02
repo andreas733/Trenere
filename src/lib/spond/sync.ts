@@ -68,10 +68,9 @@ export async function syncSwimmersFromSpond(): Promise<SpondSyncResult> {
 
   // Medlemmer i ekskluderingsgruppen/subgruppen (f.eks. Styret) tas ikke med som svømmere.
   // Støtter både group ID (egen gruppe) og subgroup ID (f.eks. Styret som subgroup).
-  // Matcher på e-post/telefon fordi Spond bruker ulik member.id per gruppe for samme person.
+  // Bruker spond_uid (member.id) – for subgroup er alle fra samme gruppe, så ID matcher.
   const excludeGroupId = process.env.SPOND_EXCLUDE_GROUP_ID;
-  const excludedEmails = new Set<string>();
-  const excludedPhones = new Set<string>();
+  const excludedMemberIds = new Set<string>();
   if (excludeGroupId) {
     const excludeGroup = groups.find((g) => g.id === excludeGroupId);
     const membersToExclude: SpondMember[] = excludeGroup
@@ -80,23 +79,13 @@ export async function syncSwimmersFromSpond(): Promise<SpondSyncResult> {
           (m.subGroups ?? []).includes(excludeGroupId)
         );
     for (const m of membersToExclude) {
-      const email = m.email?.trim().toLowerCase();
-      if (email) excludedEmails.add(email);
-      const phone = m.phoneNumber?.trim().replace(/\s/g, "");
-      if (phone) excludedPhones.add(phone);
+      excludedMemberIds.add(m.id);
     }
-    if (excludedEmails.size > 0 || excludedPhones.size > 0) {
-      const orConditions: string[] = [];
-      Array.from(excludedEmails).forEach((e) => {
-        orConditions.push(`email.eq.${e}`);
-      });
-      Array.from(excludedPhones).forEach((p) => {
-        orConditions.push(`phone.eq.${p}`);
-      });
+    if (excludedMemberIds.size > 0) {
       const { data: deletedRows, error: deleteError } = await supabase
         .from("swimmers")
         .delete()
-        .or(orConditions.join(","))
+        .in("spond_uid", Array.from(excludedMemberIds))
         .select("id");
 
       if (deleteError) {
@@ -110,12 +99,7 @@ export async function syncSwimmersFromSpond(): Promise<SpondSyncResult> {
   const now = new Date().toISOString();
 
   for (const member of targetGroup.members ?? []) {
-    const memEmail = member.email?.trim().toLowerCase();
-    const memPhone = member.phoneNumber?.trim().replace(/\s/g, "");
-    if (
-      (memEmail && excludedEmails.has(memEmail)) ||
-      (memPhone && excludedPhones.has(memPhone))
-    ) {
+    if (excludedMemberIds.has(member.id)) {
       result.skipped += 1;
       continue;
     }
