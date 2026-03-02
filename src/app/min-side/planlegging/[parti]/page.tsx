@@ -5,7 +5,7 @@ import PlanleggingClient from "../PlanleggingClient";
 
 export const dynamic = "force-dynamic";
 
-const VALID_PARTY_SLUGS = ["a", "a2", "b", "c"];
+const VALID_PARTY_SLUGS = ["a", "a2", "b", "c", "test"];
 
 export default async function PlanleggingPartiPage({
   params,

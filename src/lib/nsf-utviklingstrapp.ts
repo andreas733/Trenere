@@ -12,6 +12,7 @@ export const PARTY_SLUG_TO_NSF_TRINN: Record<string, number> = {
   b: 3,
   a2: 4,
   a: 5.5, // trinn 5-6
+  test: 3, // testparti – bruker trinn 3
 };
 
 /** Anbefalt km/år per NSF trinn (min–max). Kan justeres fra NSF PDF. */
