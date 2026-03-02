@@ -20,7 +20,7 @@ export default function AdminNav() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/admin" className="flex items-center gap-3">
           <Image
-            src="/logo.png"
+            src="/logo-white.png"
             alt="Skien Svømmeklubb"
             width={40}
             height={40}

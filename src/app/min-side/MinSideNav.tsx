@@ -34,7 +34,7 @@ export default function MinSideNav({
       <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/min-side" className="flex items-center gap-3">
           <Image
-            src="/logo.png"
+            src="/logo-white.png"
             alt="Skien Svømmeklubb"
             width={40}
             height={40}
