@@ -66,19 +66,31 @@ export async function syncSwimmersFromSpond(): Promise<SpondSyncResult> {
     }
   }
 
-  // Medlemmer i ekskluderingsgruppen (f.eks. Styret) tas ikke med som svømmere
+  // Medlemmer i ekskluderingsgruppen (f.eks. Styret) tas ikke med som svømmere.
+  // Matcher på e-post/telefon fordi Spond bruker ulik member.id per gruppe for samme person.
   const excludeGroupId = process.env.SPOND_EXCLUDE_GROUP_ID;
-  const excludedMemberIds = new Set<string>();
+  const excludedEmails = new Set<string>();
+  const excludedPhones = new Set<string>();
   if (excludeGroupId) {
     const excludeGroup = groups.find((g) => g.id === excludeGroupId);
     for (const m of excludeGroup?.members ?? []) {
-      excludedMemberIds.add(m.id);
+      const email = m.email?.trim().toLowerCase();
+      if (email) excludedEmails.add(email);
+      const phone = m.phoneNumber?.trim().replace(/\s/g, "");
+      if (phone) excludedPhones.add(phone);
     }
-    if (excludedMemberIds.size > 0) {
+    if (excludedEmails.size > 0 || excludedPhones.size > 0) {
+      const orConditions: string[] = [];
+      Array.from(excludedEmails).forEach((e) => {
+        orConditions.push(`email.eq.${e}`);
+      });
+      Array.from(excludedPhones).forEach((p) => {
+        orConditions.push(`phone.eq.${p}`);
+      });
       const { data: deletedRows, error: deleteError } = await supabase
         .from("swimmers")
         .delete()
-        .in("spond_uid", Array.from(excludedMemberIds))
+        .or(orConditions.join(","))
         .select("id");
 
       if (deleteError) {
@@ -92,7 +104,12 @@ export async function syncSwimmersFromSpond(): Promise<SpondSyncResult> {
   const now = new Date().toISOString();
 
   for (const member of targetGroup.members ?? []) {
-    if (excludedMemberIds.has(member.id)) {
+    const memEmail = member.email?.trim().toLowerCase();
+    const memPhone = member.phoneNumber?.trim().replace(/\s/g, "");
+    if (
+      (memEmail && excludedEmails.has(memEmail)) ||
+      (memPhone && excludedPhones.has(memPhone))
+    ) {
       result.skipped += 1;
       continue;
     }
