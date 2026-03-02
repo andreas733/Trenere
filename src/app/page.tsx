@@ -37,7 +37,8 @@ export default async function HomePage() {
           Skien Svømmeklubb
         </h1>
         <p className="mb-6 text-slate-600">
-          Logg inn for å se din registrerte informasjon.
+          Trenerportalen for Skien Svømmeklubb – treningsøkter, planlegging,
+          statistikk og din profil. Logg inn for å komme i gang.
         </p>
 
         <TrainerLoginForm />

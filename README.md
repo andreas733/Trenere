@@ -1,6 +1,6 @@
 # Trenere – Skien Svømmeklubb
 
-Registreringsløsning for nye trenere og frivillige i Skien Svømmeklubb. Integrerer med Tripletex for ansattdata og Anvil Etch for ansettelseskontrakter.
+Trenerportalen for Skien Svømmeklubb – registrering, treningsøktbank, planlegging og statistikk. Integrerer med Tripletex for ansattdata og Anvil Etch for ansettelseskontrakter.
 
 ## Funksjoner
 

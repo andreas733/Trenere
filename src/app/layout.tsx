@@ -6,8 +6,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Skien Svømmeklubb – Trenerregistrering",
-  description: "Registrer deg som trener eller frivillig i Skien Svømmeklubb",
+  title: "Skien Svømmeklubb – Trenerportalen",
+  description:
+    "Trenerportalen for Skien Svømmeklubb – treningsøktbank, planlegging, statistikk og profil. Logg inn eller registrer deg som trener.",
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
